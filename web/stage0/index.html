@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <title>0단계 시험</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="stage0.css">
+</head>
+<body>
+  <header class="top">
+    <h1>0단계 시험</h1>
+    <p class="soft">다섯 사람 아이디어 정원 · 연결과 기기 확인</p>
+  </header>
+
+  <main>
+    <section id="sec-env">
+      <h2>기기</h2>
+      <dl id="env" class="kv"></dl>
+      <details>
+        <summary>서버 주소 바꾸기</summary>
+        <p class="soft">stage0.js의 API_URL이 기본값이에요. 여기 넣은 값은 이 기기에만 저장돼요.</p>
+        <div class="row">
+          <input id="api-input" type="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off">
+          <button id="api-save" type="button">저장</button>
+        </div>
+      </details>
+    </section>
+
+    <section id="sec-net">
+      <h2>1. 연결과 응답 시간</h2>
+      <p class="soft">페이지를 열면 GET read를 한 번 자동으로 불러요. 오래 쉬었다 연 첫 호출은 "쉰 시간"과 함께 따로 봐 주세요.</p>
+      <dl id="cache-info" class="kv"></dl>
+      <div class="buttons">
+        <button type="button" data-call="ping">GET ping</button>
+        <button type="button" data-call="read">GET read</button>
+        <button type="button" data-call="echo">POST echo</button>
+        <button type="button" id="burst">5회씩 연속</button>
+      </div>
+      <dl id="net-stats" class="kv"></dl>
+      <div class="scroll"><table id="net-log"></table></div>
+      <button type="button" class="link" id="net-clear">기록 지우기</button>
+    </section>
+
+    <section id="sec-formula">
+      <h2>2. 시트에 글자 그대로 남기</h2>
+      <p class="soft">같은 값을 쓰는 방식별로 시트 stage0_text2 탭에 쓰고 다시 읽어요. 수식이나 숫자·날짜로 바뀌지 않고 글자 그대로 남아야 통과예요.</p>
+      <div class="row">
+        <input id="formula-extra" type="text" placeholder="더 시험할 값(선택)" autocomplete="off">
+      </div>
+      <div class="buttons"><button type="button" id="formula-run">시트에 쓰고 읽기</button></div>
+      <p id="formula-sum" class="result"></p>
+      <div class="scroll"><table id="formula-table"></table></div>
+    </section>
+
+    <section id="sec-storage">
+      <h2>3-1. localStorage 유지</h2>
+      <p class="soft">카톡 인앱 창을 닫고 같은 링크를 다시 열어 보세요. 열기 횟수가 늘면 유지되는 거예요. 카톡을 완전히 껐다 켠 뒤에도 해 보세요.</p>
+      <dl id="storage" class="kv"></dl>
+      <div class="manual" data-key="storage"></div>
+      <button type="button" class="link" id="storage-reset">이 기기의 시험 저장값 모두 지우기</button>
+    </section>
+
+    <section id="sec-code">
+      <h2>3-2. #c= 링크</h2>
+      <p class="soft">아래 링크를 단톡방(또는 나와의 채팅)에 보내고 눌러서 열어 보세요. 코드가 저장되고 주소창의 #c= 가 지워지면 통과예요. 한글 코드가 링크로 이어지는지도 봐 주세요.</p>
+      <dl id="code" class="kv"></dl>
+      <div class="buttons">
+        <button type="button" data-codelink="test1009">영문 코드 링크 복사</button>
+        <button type="button" data-codelink="다섯사람1009">한글 코드 링크 복사</button>
+      </div>
+      <p id="code-link" class="mono soft"></p>
+      <div class="manual" data-key="code"></div>
+    </section>
+
+    <section id="sec-share">
+      <h2>3-3. navigator.share</h2>
+      <dl id="share" class="kv"></dl>
+      <div class="buttons">
+        <button type="button" id="share-run">공유 창 열기</button>
+        <button type="button" id="copy-run">링크 복사(대체)</button>
+      </div>
+      <p id="share-res" class="result"></p>
+      <div class="manual" data-key="share"></div>
+    </section>
+
+    <section id="sec-print">
+      <h2>3-4. window.print</h2>
+      <dl id="print" class="kv"></dl>
+      <div class="buttons"><button type="button" id="print-run">인쇄</button></div>
+      <p id="print-res" class="result"></p>
+      <div class="manual" data-key="print"></div>
+    </section>
+
+    <section id="sec-kbd">
+      <h2>3-5. 키보드와 하단 입력줄</h2>
+      <p class="soft">입력줄을 켜고 그 안을 눌러 키보드를 올려 보세요. 입력줄이 키보드 위에 보이면 통과예요. 보정을 끄고도 비교해 보세요.</p>
+      <div class="buttons">
+        <button type="button" id="kbd-toggle" aria-pressed="false">하단 입력줄 켜기</button>
+        <button type="button" id="kbd-fix" aria-pressed="true">visualViewport 보정: 켬</button>
+      </div>
+      <dl id="kbd" class="kv"></dl>
+      <div class="manual" data-key="kbd"></div>
+    </section>
+
+    <section id="sec-font">
+      <h2>3-6. 시스템 글꼴 크기</h2>
+      <p class="soft">휴대폰 설정에서 글꼴을 가장 크게 하고, 카톡 설정의 글자 크기도 바꿔 본 뒤 이 페이지를 새로 열어 보세요.</p>
+      <dl id="font" class="kv"></dl>
+      <div class="buttons" role="group" aria-label="글자 크기">
+        <button type="button" data-scale="100" aria-pressed="true">가 100%</button>
+        <button type="button" data-scale="125" aria-pressed="false">가 125%</button>
+        <button type="button" data-scale="150" aria-pressed="false">가 150%</button>
+      </div>
+      <div class="sample">
+        <div class="strip" id="strip"></div>
+        <article class="card">
+          <div class="meta"><span class="badge">다른 부모</span><span class="soft">초등 고학년 부모 · 3시간 전</span></div>
+          <h3>한 달에 한 번, 다른 가정의 아이를 우리 집 식탁에 초대하기</h3>
+          <p class="preview">해 봤어요 · 섬기는 자매 — 지난 주일 저녁에 두 아이를 불러 찬송 한 곡 부르고…</p>
+          <p class="verse">딤후 1:5</p>
+        </article>
+        <p class="t-title">제목 1.5rem</p>
+        <p class="t-sub">소제목 1.1875rem</p>
+        <p class="t-body">본문 1rem — 어떤 방안이 떠올랐나요?</p>
+        <p class="t-small">보조 0.875rem — 자판의 마이크를 눌러 말로 써도 돼요.</p>
+      </div>
+      <div class="manual" data-key="font"></div>
+    </section>
+
+    <section id="sec-result">
+      <h2>결과</h2>
+      <p class="soft">docs/stage0-results.md에 붙여 넣을 요약이에요. 시트로 보내면 stage0_log 탭에 남아요.</p>
+      <textarea id="summary" rows="12" readonly></textarea>
+      <div class="buttons">
+        <button type="button" id="sum-refresh">새로 만들기</button>
+        <button type="button" id="sum-copy">복사</button>
+        <button type="button" id="sum-send">시트로 보내기</button>
+      </div>
+      <p id="sum-res" class="result"></p>
+    </section>
+  </main>
+
+  <div id="bar" class="bar" hidden>
+    <p id="bar-info" class="mono"></p>
+    <div class="row">
+      <input id="bar-input" type="text" placeholder="이 생각에 이어서 써 주세요" enterkeyhint="send">
+      <button type="button" id="bar-send">보내기</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="stage0.js"></script>
+</body>
+</html>
