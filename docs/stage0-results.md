@@ -9,7 +9,7 @@
 - 실행 계정: TK 개인 구글 계정
 - 웹 앱 배포 id: `AKfycbyIAX5vgaanTk0NZXbSymXFyba6oVpezgAVxtRc20l4owbblAo0-O8vCekdRl3ZljGWtg`
 - 웹 앱 주소: https://script.google.com/macros/s/AKfycbyIAX5vgaanTk0NZXbSymXFyba6oVpezgAVxtRc20l4owbblAo0-O8vCekdRl3ZljGWtg/exec
-- 시험 페이지 주소: (GitHub Pages 주소 채울 것)/stage0/
+- 시험 페이지: https://tk-korea.github.io/five-people-garden/stage0/ (저장소 https://github.com/TK-KOREA/five-people-garden, Pages는 Actions 배포)
 
 ### 순서
 
@@ -29,12 +29,14 @@
 
 | 기기 | GET read 이어서(중앙값) | GET ping | POST echo | 10분 넘게 쉰 뒤 첫 호출 | 저장된 응답 표시 |
 | --- | --- | --- | --- | --- | --- |
+| Mac 브라우저 창(fetch, GitHub Pages) | - | - | 2.4초 (서버 55ms) | 2.8초 (약 1시간 쉰 뒤 read, 서버 1.2초) | - |
 | Mac 브라우저 창(fetch, localhost) | 2.2초 (n=8, 서버 0.4~1.8초) | - | - | 2.3초 (배포 직후 첫 호출) | 11ms |
 | Mac curl | 2.3~4.7초 (서버 0.5~0.8초) | 중앙값 1.5초, 최소 0.9초 (n=30) | 1.5~1.7초 | 첫 read 47.9초(1회, 서버 0.7초) | - |
 | iOS 카톡 | | | | | |
 | Android 카톡 | | | | | |
 
-- 브라우저 fetch에서 GET·POST 모두 CORS 오류 없이 오간다(헤더 없이, POST는 Content-Type 지정 안 함).
+- GitHub Pages(`tk-korea.github.io`)와 localhost 모두에서 브라우저 fetch의 GET·POST가 CORS 오류 없이 오간다(헤더 없이, POST는 Content-Type 지정 안 함). 구조 B(기획서 4장)가 데스크톱에서는 동작한다.
+- `#c=test1009`로 열면 코드가 기기에 저장되고 주소창에서 지워진다(Mac). 한글 코드(`#c=%EB%8B%A4…`)도 풀어서 저장된다(localhost).
 - POST Content-Type(서버가 본 값): `text/plain`
 - 한글·이모지 왕복: 그대로
 - 시간대: `Utilities.formatDate(…, "yyyy-MM-dd'T'HH:mm:ssXXX")`가 `2026-10-09T17:15:59+09:00`을 낸다.
