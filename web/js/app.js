@@ -117,7 +117,7 @@ function setHeader({ title, back } = {}) {
       : null,
     el('h1', { class: back ? 'h-title small' : 'h-title' }, title || '한 아이 곁에 다섯 사람'),
     el('div', { class: 'h-actions' },
-      el('button', { type: 'button', class: 'icon-btn', 'aria-label': '내가 나눈 생각', onclick: () => go('#/mine') }, icon('mine', 22)),
+      el('button', { type: 'button', class: 'icon-btn text-btn small-text', onclick: () => go('#/mine') }, '내 글'),
       el('button', { type: 'button', class: 'icon-btn text-btn', 'aria-label': '글자 크기', onclick: cycleScale }, '가'),
       el('button', { type: 'button', class: 'icon-btn', 'aria-label': '도움말', onclick: () => go('#/help') }, icon('help', 22)),
     ),
@@ -143,7 +143,7 @@ async function route() {
       await renderFeed(m, { restoreScroll: restore });
     } else if (view === 'idea' && parts[1]) {
       setHeader({ back: true, title: '함께 다듬기' });
-      await renderIdea(m, parts[1]);
+      await renderIdea(m, parts[1], { focusReply: params.get('reply') === '1' });
     } else if (view === 'new') {
       setHeader({ back: true, title: '생각 나누기' });
       renderCompose(m, { seat: params.get('seat') || '', questionId: params.get('q') || '', parentId: params.get('parent') || '' });

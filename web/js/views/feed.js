@@ -23,7 +23,7 @@ export function ideaCard(item) {
   }
   const replies = item.reply_count > 0
     ? el('span', { class: 'meta' }, icon('reply', 16), `이어 쓰기 ${item.reply_count}`)
-    : el('span', { class: 'meta nudge' }, '첫 생각을 이어 주세요');
+    : el('a', { class: 'meta nudge', href: '#/idea/' + item.id + '?reply=1' }, '첫 생각을 이어 주세요');
   return el('article', { class: 'card' + (isNew(item) ? ' is-new' : '') },
     el('a', { class: 'card-link', href: '#/idea/' + item.id },
       el('div', { class: 'card-top' },

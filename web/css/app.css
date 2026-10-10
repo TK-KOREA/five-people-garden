@@ -74,6 +74,11 @@ button { font: inherit; color: inherit; }
   background: none; border: 0; border-radius: 999px; color: var(--ink); padding: 0;
 }
 .icon-btn.text-btn { font-weight: 700; font-size: 1.0625rem; }
+.icon-btn.small-text { font-size: 0.875rem; padding: 0 8px; }
+.status-btn { background: none; border: 0; padding: 0 4px; min-height: 32px; border-radius: 999px; }
+.nudge-btn { display: block; width: 100%; background: none; border: 0; font: inherit; cursor: pointer; }
+.admin-link { text-align: center; margin-top: 32px; font-size: 0.875rem; }
+.admin-link a { color: var(--ink-soft); display: inline-block; min-height: 44px; line-height: 44px; padding: 0 12px; }
 .icon { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
 
 .main { max-width: 720px; margin: 0 auto; padding: 16px; }
@@ -257,11 +262,11 @@ a.card.card-link { padding-bottom: 12px; }
 .bar-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
 .seg { display: flex; gap: 4px; }
 .seg-btn {
-  min-height: 36px; padding: 0 10px; border-radius: 999px;
+  min-height: 44px; padding: 0 12px; border-radius: 999px;
   border: 1px solid var(--line); background: var(--surface); font-size: 0.875rem; font-weight: 600;
 }
 .seg-btn.on { border-color: currentColor; background: var(--bg); }
-.nick-btn { min-height: 36px; background: none; border: 0; color: var(--ink-soft); font-size: 0.875rem; }
+.nick-btn { min-height: 44px; background: none; border: 0; color: var(--ink-soft); font-size: 0.875rem; }
 .bar-row { display: flex; gap: 8px; align-items: flex-end; }
 .bar-input { flex: 1; min-height: 44px; resize: none; }
 .btn.send { flex: 0 0 auto; }

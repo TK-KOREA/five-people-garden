@@ -40,5 +40,6 @@ export function renderHelp(m) {
       el('p', { class: 'hint' }, '이 기기에서 쓴 글은 이 기기에서 고치거나 지울 수 있어요. 다른 기기에서 쓴 글은 관리자에게 말씀해 주세요.'),
     ),
     el('button', { type: 'button', class: 'btn ghost', onclick: () => { store.save('intro_closed', false); history.back(); } }, '처음 안내 카드 다시 보기'),
+    el('p', { class: 'admin-link' }, el('a', { href: '#/admin' }, '관리자')),
   ));
 }

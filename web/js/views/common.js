@@ -4,13 +4,14 @@ import * as store from '../store.js';
 import { el, icon, toast, confirmSheet, openSheet } from '../ui.js';
 
 /** 물 준 수는 1 이상일 때만 보인다(설계 원칙 5). */
-export function waterButton(targetId, waters, { small } = {}) {
+/** withText: 상세 화면처럼 자리가 있으면 "물 주기 3"처럼 글자를 붙인다. 카드는 아이콘과 숫자만. */
+export function waterButton(targetId, waters, { small, withText } = {}) {
   const day = store.kstDay();
   let count = waters || 0;
   const label = el('span', { class: 'count' });
   const btn = el('button', { type: 'button', class: 'chip-btn water' + (small ? ' small' : '') }, icon('drop', 18), label);
   const draw = () => {
-    label.textContent = count > 0 ? String(count) : '';
+    label.textContent = (withText ? '물 주기' + (count > 0 ? ' ' : '') : '') + (count > 0 ? String(count) : '');
     const done = store.wateredToday(targetId, day);
     btn.classList.toggle('done', done);
     btn.setAttribute('aria-label', (done ? '오늘 물을 주었어요' : '물 주기') + (count > 0 ? `, ${count}` : ''));

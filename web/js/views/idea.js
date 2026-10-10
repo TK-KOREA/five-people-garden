@@ -1,7 +1,7 @@
 // 함께 다듬기(상세): 생각 전문, 갈라진 가지, 이어 쓴 생각, 아래 고정 입력줄.
 import { get, post, messageFor } from '../api.js';
 import * as store from '../store.js';
-import { el, icon, seatBadges, statusBadge, relTime, toast, confirmSheet, openSheet, isKakao, copyText, autoGrow } from '../ui.js';
+import { el, icon, seatBadges, statusBadge, STATUS_MEANING, relTime, toast, confirmSheet, openSheet, isKakao, copyText, autoGrow } from '../ui.js';
 import { PUBLIC_URL, APP_NAME } from '../config.js';
 import { state, go, refreshBoot, patchItem } from '../app.js';
 import { waterButton, reportButton, nicknameSheet } from './common.js';
@@ -62,6 +62,19 @@ function editReplySheet(reply, onDone) {
   const dlg = openSheet(el('div', null, el('h2', { class: 'sheet-title' }, '내 글 고치기'), ta, el('div', { class: 'row-end' }, save)), { label: '내 글 고치기' });
 }
 
+/** 상태 배지를 누르면 그 뜻을 한 줄로 알려 준다. */
+function statusButton(status) {
+  return el('button', {
+    type: 'button', class: 'status-btn', 'aria-label': `${status || '씨앗'}: ${STATUS_MEANING[status] || ''}`,
+    onclick: () => toast(`${status || '씨앗'} · ${STATUS_MEANING[status] || ''}`),
+  }, statusBadge(status));
+}
+
+function focusReply() {
+  const ta = document.querySelector('.bar textarea');
+  if (ta) ta.focus();
+}
+
 function replyItem(r, reload) {
   const mine = !!store.tokenFor(r.id);
   return el('li', { class: 'reply', dataset: { kind: r.kind } },
@@ -106,7 +119,7 @@ function replyBar(ideaId, onSent) {
   }, k)));
   drawKinds();
   const nick = el('button', { type: 'button', class: 'nick-btn' });
-  const drawNick = () => { nick.textContent = (store.load('nickname', '') || '별칭 고르기') + ' ▾'; };
+  const drawNick = () => { nick.textContent = '이름: ' + (store.load('nickname', '') || '함께하는 성도') + ' ▾'; };
   drawNick();
   nick.addEventListener('click', async () => { await nicknameSheet(state.boot); drawNick(); });
 
@@ -124,11 +137,7 @@ function replyBar(ideaId, onSent) {
   async function sendOnce() {
     const text = ta.value.trim();
     if (!text) return ta.focus();
-    if (!store.load('nickname', '')) {
-      const n = await nicknameSheet(state.boot);
-      drawNick();
-      if (!n) return;
-    }
+    // 이름을 고르지 않았으면 "함께하는 성도"로 보낸다. 나누기 화면과 같은 규칙(UX 점검).
     const fields = { text, author: store.load('nickname', '') };
     const choice = await privacyCheck(fields);
     if (choice === 'edit') return ta.focus();
@@ -163,7 +172,7 @@ function replyBar(ideaId, onSent) {
   return bar;
 }
 
-export async function renderIdea(m, id) {
+export async function renderIdea(m, id, { focusReply: wantFocus = false } = {}) {
   if (!/^I-\d{8}-[a-z0-9]{6}$/.test(id)) return go('#/');
   const head = el('div');
   const body = el('div');
@@ -185,7 +194,7 @@ export async function renderIdea(m, id) {
     }
     const branches = data ? data.branches : [];
     head.replaceChildren(el('article', { class: 'detail' },
-      el('div', { class: 'card-top' }, seatBadges(idea.seat), statusBadge(idea.status)),
+      el('div', { class: 'card-top' }, seatBadges(idea.seat), statusButton(idea.status)),
       el('p', { class: 'meta' }, `${idea.author} · ${relTime(idea.created_at)}${idea.updated_at && idea.updated_at !== idea.created_at ? ' · 고침' : ''}`),
       el('h2', { class: 'detail-title' }, idea.title),
       data && idea.detail ? el('p', { class: 'detail-text' }, idea.detail) : (!data && idea.summary ? el('p', { class: 'detail-text' }, idea.summary) : null),
@@ -198,7 +207,7 @@ export async function renderIdea(m, id) {
         el('summary', null, `갈라진 가지 ${branches.length}`),
         el('ul', null, branches.map((b) => el('li', null, el('a', { href: '#/idea/' + b.id }, b.title))))),
       el('div', { class: 'actions' },
-        waterButton(idea.id, idea.waters),
+        waterButton(idea.id, idea.waters, { withText: true }),
         el('button', { type: 'button', class: 'chip-btn', onclick: () => share(idea) }, icon('share', 18), '카톡으로 보내기'),
         el('button', { type: 'button', class: 'chip-btn', onclick: doPrint }, icon('print', 18), '인쇄'),
       ),
@@ -232,7 +241,7 @@ export async function renderIdea(m, id) {
         onclick: () => { filter = v; drawReplies(data); },
       }, label))),
       replies.length === 0
-        ? el('p', { class: 'empty nudge' }, '첫 생각을 이어 주세요')
+        ? el('button', { type: 'button', class: 'empty nudge nudge-btn', onclick: focusReply }, '첫 생각을 이어 주세요')
         : el('ul', { class: 'reply-list' }, shown.map((r) => replyItem(r, load))),
     ));
   }
@@ -241,6 +250,7 @@ export async function renderIdea(m, id) {
     if (data.idea.deleted || document.querySelector('.bar')) return;
     document.body.classList.add('has-bar');
     m.append(replyBar(id, onSent));
+    if (wantFocus) setTimeout(focusReply, 100);
   }
 
   // 이어 쓰기를 보내면 서버 응답(새 이어 쓰기와 생각의 새 상태)으로 바로 그린다. 다시 묻지 않는다.
