@@ -2,8 +2,8 @@
 import { get, post, messageFor } from '../api.js';
 import * as store from '../store.js';
 import { el, toast, autoGrow, charLen, cutChars } from '../ui.js';
-import { state, go, refreshBoot } from '../app.js';
-import { nicknameField } from './common.js';
+import { state, go, refreshBoot, addItemLocally } from '../app.js';
+import { nicknameSheet } from './common.js';
 import { sendWrite, privacyCheck } from '../write.js';
 
 // 연결별 생각 꺼내기 문장(기획서 5-1)
@@ -107,7 +107,16 @@ export async function renderCompose(m, { seat = '', questionId = '', parentId = 
 
   const ageChips = multiChips(c.ages, ages, saveDraft, '나이대');
   const settingChips = multiChips(c.settings, settings, saveDraft, '상황');
-  const nick = editing ? null : nicknameField(state.boot, c.limits.author);
+  // 별칭은 칩 10개 대신 "이름: ○○ 바꾸기" 한 줄. 고르지 않으면 서버 기본값 "함께하는 성도"(UX 점검 ③).
+  const nickname = () => store.load('nickname', '');
+  const nameBtn = editing ? null : el('button', { type: 'button', class: 'name-line', 'aria-label': '이름 바꾸기' });
+  const drawName = () => nameBtn && nameBtn.replaceChildren(
+    el('span', { class: 'meta' }, '이름'),
+    el('strong', null, nickname() || '함께하는 성도'),
+    el('span', { class: 'text-link' }, '바꾸기'),
+  );
+  drawName();
+  if (nameBtn) nameBtn.addEventListener('click', async () => { await nicknameSheet(state.boot); drawName(); });
 
   function values() {
     return { title: title.value.trim(), detail: detail.value.trim(), seat: seats.join(','), age: ages.join(','), setting: settings.join(','), verse: verse.value.trim() };
@@ -145,7 +154,7 @@ export async function renderCompose(m, { seat = '', questionId = '', parentId = 
       toast('제목이 길어 넘친 부분은 설명으로 옮겼어요.');
     }
     const fields = { title: v.title, detail: v.detail };
-    if (nick) fields.author = nick.value;
+    if (!editing) fields.author = nickname();
     const choice = await privacyCheck(fields);
     if (choice === 'edit') return title.focus();
     if (choice === 'replaced') {
@@ -160,6 +169,7 @@ export async function renderCompose(m, { seat = '', questionId = '', parentId = 
       try {
         await post('update', { id: editId, edit_token: store.tokenFor(editId), ...v });
         toast('고쳤어요.');
+        store.forgetIdea(editId);
         refreshBoot().catch(() => {});
         go('#/idea/' + editId);
       } catch (err) {
@@ -169,40 +179,36 @@ export async function renderCompose(m, { seat = '', questionId = '', parentId = 
       return;
     }
 
-    nick.remember();
     saveDraft();
-    const body = { ...v, author: nick.value, question_id: question ? question.id : (questionId || ''), parent_id: parentId, request_id: requestId };
+    const body = { ...v, author: fields.author, question_id: question ? question.id : (questionId || ''), parent_id: parentId, request_id: requestId };
     const data = await sendWrite('create', body, submit);
     if (!data) return;
     store.save('compose_draft', undefined);
     toast('생각을 나눴어요. 다른 생각에 이어 써 볼까요?');
     state.seat = '';
     state.scrollTop = true;
-    await refreshBoot().catch(() => {});
+    // 서버에 다시 묻지 않고 바로 첫 화면에 보여 준다. 첫 화면이 뒤에서 새 응답으로 바꾼다.
+    addItemLocally(data.item);
     go('#/');
   }
 
   m.append(el('form', { class: 'compose', onsubmit: onSubmit },
     question && el('div', { class: 'question small' }, el('p', { class: 'eyebrow' }, '오늘의 질문'), el('p', { class: 'q-text' }, question.text)),
-    el('div', { class: 'field' },
-      el('p', { class: 'label' }, '어느 연결의 생각인가요?'),
-      seatChips.node,
-      el('p', { class: 'hint' }, '여러 개를 골라도 돼요.'),
-    ),
-    prompt,
+    // 순서: 제목 → 설명 → (더 적기) → 이름 → 나누기. 필수는 제목 하나(UX 점검 ③).
     el('div', { class: 'field' },
       el('label', { class: 'label', for: 'title' }, '한 줄로 써 주세요'),
       title, counter,
     ),
     el('div', { class: 'field' }, detail),
-    el('details', { class: 'more-fields', open: !!(ages.length || settings.length || verse.value) || null },
-      el('summary', null, '더 적기 · 나이대, 상황, 근거 구절'),
+    el('details', { class: 'more-fields', open: !!(seats.some((s) => s !== '함께') || ages.length || settings.length || verse.value) || null },
+      el('summary', null, '더 적기 · 연결, 나이대, 상황, 구절'),
+      el('div', { class: 'field' }, el('p', { class: 'label' }, '어느 연결의 생각인가요?'), seatChips.node, prompt),
       el('div', { class: 'field' }, el('p', { class: 'label' }, '나이대'), ageChips.node),
       el('div', { class: 'field' }, el('p', { class: 'label' }, '상황'), settingChips.node),
       el('div', { class: 'field' }, el('label', { class: 'label', for: 'verse' }, '근거 구절 (장절만)'), verse),
     ),
-    nick && nick.node,
-    submit,
+    nameBtn,
+    el('div', { class: 'submit-bar' }, submit),
   ));
   if (!editing && !title.value) setTimeout(() => title.focus(), 100);
 }

@@ -75,6 +75,8 @@ test('create: 저장, 토큰, 피드 맨 위, 중복 request_id는 한 번만', 
   assert.match(d.id, /^I-\d{8}-[a-z0-9]{6}$/);
   assert(d.edit_token);
   idea1 = d.id; token1 = d.edit_token;
+  assert.strictEqual(d.item.title, '=1+1 식탁 초대', '카드 모양을 함께 돌려줌');
+  assert(!('device_id' in d.item));
   const again = ok(env.post(body));
   assert.strictEqual(again.id, d.id);
   const b = ok(env.get({ action: 'bootstrap' }));
@@ -105,6 +107,8 @@ test('create: 60자 넘는 제목은 넘친 부분을 설명으로', () => {
 test('reply: 덧붙임 → 싹, 해 봤어요 → 시도, 두 번째 해 봤어요 → 열매', () => {
   const r1 = ok(env.post({ action: 'reply', edit_code: CODE, device_id: dev(6), request_id: rq(), idea_id: idea1, kind: '덧붙임', text: '찬송도 한 곡', author: '섬기는 자매' }));
   assert.strictEqual(r1.status, '싹');
+  assert.strictEqual(r1.reply.text, '찬송도 한 곡');
+  assert.strictEqual(r1.idea.reply_count, 1);
   const r2 = ok(env.post({ action: 'reply', edit_code: CODE, device_id: dev(3), request_id: rq(), idea_id: idea1, kind: '해 봤어요', text: '해 봤어요 1', author: '청년 형제' }));
   assert.strictEqual(r2.status, '시도');
   const r3 = ok(env.post({ action: 'reply', edit_code: CODE, device_id: dev(7), request_id: rq(), idea_id: idea1, kind: '해 봤어요', text: '해 봤어요 2' }));
@@ -202,6 +206,7 @@ test('mine: 내 글과 숨김 표시', () => {
 });
 
 test('관리: 틀린 코드, 목록, 숨김·되돌리기, 지우기', () => {
+  assert.match(ok(env.post(admin({ action: 'admin_list' }))).invite.link, /#c=/);
   err(env.post({ action: 'admin_list', admin_code: 'x', admin_name: 'TK', device_id: dev(40) }), 'BAD_ADMIN_CODE');
   err(env.post({ action: 'admin_list', admin_code: ADMIN, device_id: dev(40) }), 'INVALID');
   const list = ok(env.post(admin({ action: 'admin_list' })));

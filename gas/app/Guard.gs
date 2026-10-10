@@ -22,7 +22,7 @@ function incr_(key, ttl) {
   return n;
 }
 
-/** 편집 코드는 공백과 대소문자를 무시한다(기획서 3-5). */
+/** 참여 코드는 공백과 대소문자를 무시한다(기획서 3-5). */
 function normalizeCode_(s) {
   return String(s || '').replace(/\s+/g, '').toLowerCase();
 }

@@ -94,7 +94,7 @@ function setupProperties() {
   if (!p.getProperty('ADMIN_CODE')) p.setProperty('ADMIN_CODE', randomCode_(20));
   if (!p.getProperty('REV')) p.setProperty('REV', '0');
   if (!p.getProperty('SALT')) p.setProperty('SALT', Utilities.getUuid());
-  Logger.log('편집 코드: %s', p.getProperty('EDIT_CODE'));
+  Logger.log('참여 코드: %s', p.getProperty('EDIT_CODE'));
   Logger.log('관리 코드: %s', p.getProperty('ADMIN_CODE'));
   Logger.log('운영 전에 관리 화면에서 두 코드를 바꿔 주세요.');
 }

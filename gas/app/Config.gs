@@ -26,7 +26,7 @@ var DEFAULTS = {
   limit_question: 100,
   rate_write_per_min: 10,
   rate_write_global_per_min: 60,
-  cache_sec: 60,
+  cache_sec: 60, // 지금은 쓰지 않는다. 캐시는 rev·날짜 키로 6시간(Api.gs CACHE_TTL)
   page_size: 20,
   report_alert: 1
 };

@@ -13,11 +13,26 @@
   <meta name="theme-color" content="#1B1D1A" media="(prefers-color-scheme: dark)">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21v-9' stroke='%234E7A43' stroke-width='2' fill='none'/%3E%3Cpath d='M12 12c0-5-4-7-8-7 0 5 4 7 8 7zM12 12c0-5 4-7 8-7 0 5-4 7-8 7z' fill='%234E7A43'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <!-- 글꼴은 화면 그리기를 막지 않게 늦게 붙인다(그동안 시스템 글꼴) -->
+  <link rel="stylesheet" media="print" onload="this.media='all'" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500&display=swap">
+  <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500&display=swap">
   <link rel="stylesheet" href="css/app.css">
+  <!-- 모듈을 한꺼번에 미리 받아 카톡 안의 느린 연결에서 순서대로 기다리지 않게 한다 -->
+  <link rel="modulepreload" href="js/config.js">
+  <link rel="modulepreload" href="js/api.js">
+  <link rel="modulepreload" href="js/store.js">
+  <link rel="modulepreload" href="js/ui.js">
+  <link rel="modulepreload" href="js/privacy.js">
+  <link rel="modulepreload" href="js/write.js">
+  <link rel="modulepreload" href="js/views/common.js">
+  <link rel="modulepreload" href="js/views/feed.js">
+  <link rel="modulepreload" href="js/views/idea.js">
+  <link rel="modulepreload" href="js/views/compose.js">
+  <link rel="modulepreload" href="js/views/mine.js">
+  <link rel="modulepreload" href="js/views/help.js">
+  <link rel="modulepreload" href="js/views/admin.js">
 </head>
 <body>
   <header id="header" class="header"></header>

@@ -1,4 +1,4 @@
-// 쓰기 흐름: 개인정보 경고 → 편집 코드 확인 → 보내기(보내지 못하면 기기에 남김). 기획서 3-5, 5-1, 6-1.
+// 쓰기 흐름: 개인정보 경고 → 참여 코드 확인 → 보내기(보내지 못하면 기기에 남김). 기획서 3-5, 5-1, 6-1.
 import { post, messageFor, MESSAGES } from './api.js';
 import * as store from './store.js';
 import { el, openSheet, toast } from './ui.js';
@@ -50,11 +50,11 @@ export function privacyCheck(fields) {
   });
 }
 
-/** 편집 코드를 묻는다. 넣으면 문자열, 닫으면 null. */
+/** 참여 코드를 묻는다. 넣으면 문자열, 닫으면 null. */
 export function promptCode(message) {
   return new Promise((resolve) => {
     let value = null;
-    const input = el('input', { type: 'text', class: 'input', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', 'aria-label': '편집 코드', placeholder: '예: 다섯사람1009' });
+    const input = el('input', { type: 'text', class: 'input', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', 'aria-label': '참여 코드' });
     const submit = (e) => {
       e.preventDefault();
       if (!input.value.trim()) return input.focus();
@@ -62,13 +62,13 @@ export function promptCode(message) {
       dlg.close();
     };
     const dlg = openSheet(el('form', { onsubmit: submit },
-      el('h2', { class: 'sheet-title' }, '편집 코드'),
+      el('h2', { class: 'sheet-title' }, '참여 코드'),
       message && el('p', { class: 'sheet-text warn' }, message),
-      el('p', { class: 'sheet-text' }, '쓴 글은 그대로 있어요. 편집 코드를 넣으면 바로 보낼게요.'),
+      el('p', { class: 'sheet-text' }, '교회 단톡방 공지에 있는 참여 코드를 넣어 주세요. 쓴 글은 그대로 있어요.'),
       input,
-      el('p', { class: 'hint' }, '교회 단톡방 공지의 링크로 열면 코드를 넣지 않아도 돼요.'),
+      el('p', { class: 'hint' }, '공지의 링크로 열면 코드 없이 쓸 수 있어요.'),
       el('div', { class: 'row-end' }, el('button', { type: 'submit', class: 'btn' }, '보내기')),
-    ), { label: '편집 코드', onClose: () => resolve(value) });
+    ), { label: '참여 코드', onClose: () => resolve(value) });
     setTimeout(() => input.focus(), 50);
   });
 }

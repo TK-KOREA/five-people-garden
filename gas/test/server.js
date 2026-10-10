@@ -8,7 +8,7 @@ const { makeEnv } = require('./harness');
 
 const env = makeEnv({ realClock: true });
 env.call('setupAll');
-console.log('편집 코드:', env.props.get('EDIT_CODE'));
+console.log('참여 코드:', env.props.get('EDIT_CODE'));
 console.log('관리 코드:', env.props.get('ADMIN_CODE'));
 
 const PORT = Number(process.env.PORT || 8731);

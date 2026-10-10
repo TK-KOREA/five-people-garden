@@ -66,15 +66,11 @@ function cardsWithFolds(items) {
   return out;
 }
 
+// 처음 안내는 한 줄 띠로. 더 알고 싶으면 위쪽 "?"(UX 점검 ②).
 function introCard(onClose) {
   return el('section', { class: 'intro', 'aria-label': '처음 안내' },
-    el('p', null, '아이 곁에 의미 있는 다섯 사람(친구, 부모, 봉사, 다른 부모, 조부모)을 세우는 방법을 함께 나누는 곳이에요.'),
-    el('p', null, '읽기와 물 주기(공감)는 누구나 할 수 있어요.'),
-    el('p', null, '단톡방 링크로 열면 계속 기억돼요.'),
-    el('div', { class: 'row-end' },
-      el('button', { type: 'button', class: 'btn ghost small', onclick: () => go('#/help') }, '더 알아보기'),
-      el('button', { type: 'button', class: 'btn small', onclick: onClose }, '알겠어요'),
-    ),
+    el('p', null, '아이 곁에 다섯 사람을 세우는 생각을 나누는 곳이에요. 읽기와 물 주기는 누구나 할 수 있어요.'),
+    el('button', { type: 'button', class: 'btn small', onclick: onClose }, '알겠어요'),
   );
 }
 
@@ -169,7 +165,6 @@ export async function renderFeed(m, { restoreScroll } = {}) {
       el('button', { type: 'button', class: 'compose-line', onclick: () => go('#/new' + (state.seat ? '?seat=' + encodeURIComponent(state.seat) : '')) },
         icon('pen', 18), '어떤 방안이 떠올랐나요?'),
       seatStrip(pickSeat),
-      !state.seat && questionCard(),
     );
   };
   const drawList = () => {
@@ -178,7 +173,11 @@ export async function renderFeed(m, { restoreScroll } = {}) {
     } else if (!state.items.length) {
       list.replaceChildren(el('p', { class: 'empty' }, state.seat ? `${state.seat} 연결에는 아직 생각이 없어요. 첫 생각을 나눠 주세요.` : '아직 나눈 생각이 없어요. 떠오른 것을 한 줄로 나눠 주세요.'));
     } else {
-      list.replaceChildren(...cardsWithFolds(state.items));
+      // 오늘의 질문은 첫 생각 카드 바로 아래에. 들어오자마자 다른 사람의 생각이 보이게(UX 점검 ②).
+      const cards = cardsWithFolds(state.items);
+      const q = !state.seat && questionCard();
+      if (q) cards.splice(1, 0, q);
+      list.replaceChildren(...cards);
     }
     more.replaceChildren(state.nextCursor ? el('button', { type: 'button', class: 'btn ghost wide', onclick: loadMore }, '생각 더 보기') : '');
   };

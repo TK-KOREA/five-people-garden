@@ -20,17 +20,20 @@ export function waterButton(targetId, waters, { small } = {}) {
     e.stopPropagation();
     e.preventDefault();
     if (store.wateredToday(targetId, day)) return toast('오늘은 이미 물을 주었어요.');
-    btn.disabled = true;
+    // 먼저 보여 주고 뒤에서 보낸다. 실패하면 되돌린다.
+    count += 1;
+    store.markWatered(targetId, day);
+    draw();
+    toast('물을 주었어요.');
     try {
       const d = await post('water', { device_id: store.deviceId(), target_id: targetId });
       count = d.waters;
-      store.markWatered(targetId, day);
       draw();
-      toast(d.already ? '오늘은 이미 물을 주었어요.' : '물을 주었어요.');
     } catch (err) {
+      count -= 1;
+      store.unmarkWatered(targetId);
+      draw();
       toast(messageFor(err));
-    } finally {
-      btn.disabled = false;
     }
   });
   return btn;

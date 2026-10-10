@@ -26,7 +26,10 @@ function postAdminList_(body) {
     return { at: l.at, action: l.action, target_id: l.target_id, before: l.before, after: l.after,
       author: l.author, admin_name: l.admin_name };
   });
+  // 관리자에게만 지금 참여 코드와 단톡방 링크를 보여 준다(UX 점검 ①). 관리 코드는 돌려주지 않는다.
+  var code = props_().getProperty('EDIT_CODE') || '';
   return {
+    invite: { code: code, link: PUBLIC_URL + '#c=' + encodeURIComponent(code) },
     attention: all.filter(function (x) { return !x.hidden && !x.deleted && (x.flagged || x.report_count >= alert); }).sort(byNew),
     hidden: all.filter(function (x) { return x.hidden; }).sort(byNew),
     log: log,
@@ -154,13 +157,13 @@ function postStats_(body) {
   };
 }
 
-/** 코드 교체. 옛 코드는 바로 무효. 편집 코드면 단톡방 공지 문구를 만들어 준다. 코드는 log에 남기지 않는다. */
+/** 코드 교체. 옛 코드는 바로 무효. 참여 코드면 단톡방 공지 문구를 만들어 준다. 코드는 log에 남기지 않는다. */
 function postSetCode_(body) {
   var adminName = requireAdmin_(body);
   var which = body.which === 'admin' ? 'admin' : body.which === 'edit' ? 'edit' : '';
   if (!which) fail_('INVALID', 'which');
   var code = String(body.new_code || '').trim();
-  if (which === 'edit' && normalizeCode_(code).length < 8) fail_('INVALID', '편집 코드는 8자 이상');
+  if (which === 'edit' && normalizeCode_(code).length < 8) fail_('INVALID', '참여 코드는 8자 이상');
   if (which === 'admin' && (code.length < 16 || /\s/.test(code))) fail_('INVALID', '관리 코드는 공백 없이 16자 이상');
   return withLock_(function () {
     props_().setProperty(which === 'edit' ? 'EDIT_CODE' : 'ADMIN_CODE', code);
@@ -168,7 +171,7 @@ function postSetCode_(body) {
     bumpRev_();
     var res = { which: which };
     if (which === 'edit') {
-      res.notice = '[' + APP_NAME + '] 편집 코드가 바뀌었어요. 생각을 나누려면 아래 링크로 다시 열어 주세요.\n' +
+      res.notice = '[' + APP_NAME + '] 참여 코드가 바뀌었어요. 생각을 나누려면 아래 링크로 다시 열어 주세요.\n' +
         PUBLIC_URL + '#c=' + encodeURIComponent(code) + '\n이 링크는 단톡방 안에서만 나눠 주세요.';
     }
     return res;

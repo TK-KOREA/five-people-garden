@@ -84,14 +84,19 @@ function withLock_(fn) {
   }
 }
 
-/** rev가 바뀌면 키가 바뀌므로 쓰기 뒤에는 바로 새 값을 읽는다. 100KB를 넘으면 캐시하지 않는다. */
+/**
+ * 키에 rev와 KST 날짜가 들어 있어 쓰기가 일어나거나 날이 바뀌면 바로 새 값을 읽는다.
+ * 그래서 오래(6시간, CacheService 최대) 둬도 된다. 시트를 사람이 직접 고친 것은 다음 쓰기 때 반영된다.
+ * 100KB를 넘으면 캐시하지 않는다.
+ */
+var CACHE_TTL = 21600;
 function cached_(key, fn) {
   var c = cache_();
-  var full = key + '_v' + rev_();
+  var full = key + '_v' + rev_() + '_' + kstDate_();
   var hit = c.get(full);
   if (hit) return JSON.parse(hit);
   var data = fn();
   var json = JSON.stringify(data);
-  if (json.length < 95000) c.put(full, json, config_().cache_sec);
+  if (json.length < 95000) c.put(full, json, CACHE_TTL);
   return data;
 }

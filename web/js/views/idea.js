@@ -3,7 +3,7 @@ import { get, post, messageFor } from '../api.js';
 import * as store from '../store.js';
 import { el, icon, seatBadges, statusBadge, relTime, toast, confirmSheet, openSheet, isKakao, copyText, autoGrow } from '../ui.js';
 import { PUBLIC_URL, APP_NAME } from '../config.js';
-import { state, go, refreshBoot } from '../app.js';
+import { state, go, refreshBoot, patchItem } from '../app.js';
 import { waterButton, reportButton, nicknameSheet } from './common.js';
 import { sendWrite, privacyCheck } from '../write.js';
 
@@ -142,7 +142,7 @@ function replyBar(ideaId, onSent) {
     ta.style.height = 'auto';
     store.save(draftKey, undefined);
     toast(data.status === '열매' ? '이어 썼어요. 열매가 맺혔어요.' : '이어 썼어요.');
-    onSent();
+    onSent(data);
   }
 
   const bar = el('div', { class: 'bar', role: 'region', 'aria-label': '이어 쓰기' },
@@ -170,8 +170,11 @@ export async function renderIdea(m, id) {
   m.append(head, body);
   let filter = '';
 
+  // 먼저 그린다: 최근에 본 상세가 있으면 이어 쓰기까지, 없으면 피드 카드로. 서버 응답이 오면 바꾼다.
+  let current = store.cachedIdea(id);
   const cached = state.items.find((x) => x.id === id);
-  if (cached) drawIdea(cached, null);
+  if (current) { drawIdea(current.idea, current); drawReplies(current); showBar(current); }
+  else if (cached) drawIdea(cached, null);
   else head.replaceChildren(el('p', { class: 'empty' }, '불러오는 중이에요…'));
 
   function drawIdea(idea, data) {
@@ -208,6 +211,7 @@ export async function renderIdea(m, id) {
             try {
               await post('remove', { id: idea.id, edit_token: store.tokenFor(idea.id) });
               toast('지웠어요.');
+              store.forgetIdea(idea.id);
               refreshBoot().catch(() => {});
               go('#/');
             } catch (e) { toast(messageFor(e)); }
@@ -233,19 +237,44 @@ export async function renderIdea(m, id) {
     ));
   }
 
+  function showBar(data) {
+    if (data.idea.deleted || document.querySelector('.bar')) return;
+    document.body.classList.add('has-bar');
+    m.append(replyBar(id, onSent));
+  }
+
+  // 이어 쓰기를 보내면 서버 응답(새 이어 쓰기와 생각의 새 상태)으로 바로 그린다. 다시 묻지 않는다.
+  function onSent(res) {
+    if (res && res.reply && current) {
+      current.replies = current.replies.filter((r) => r.id !== res.reply.id).concat(res.reply);
+      Object.assign(current.idea, res.idea);
+      drawIdea(current.idea, current);
+      drawReplies(current);
+      store.cacheIdea(current);
+      patchItem(id, res.idea);
+    } else {
+      load();
+    }
+    refreshBoot().catch(() => {});
+  }
+
   async function load() {
     try {
       const data = await get('idea', { id });
       if (!m.isConnected) return;
+      current = data;
+      store.cacheIdea(data);
       drawIdea(data.idea, data);
       drawReplies(data);
       if (store.tokenFor(id)) store.setSeenReplies(id, data.idea.reply_count);
-      if (!data.idea.deleted && !document.querySelector('.bar')) {
-        document.body.classList.add('has-bar');
-        m.append(replyBar(id, () => { load(); refreshBoot().catch(() => {}); }));
-      }
+      showBar(data);
     } catch (e) {
       if (!m.isConnected) return;
+      // 연결 오류인데 저장된 화면이 있으면 그대로 둔다.
+      if (e.code === 'NETWORK' && current) return toast('새 내용을 불러오지 못했어요. 저장된 화면을 보여 드려요.');
+      store.forgetIdea(id);
+      document.querySelector('.bar')?.remove();
+      document.body.classList.remove('has-bar');
       let msg = messageFor(e);
       // 내 글이면 숨김(관리자)과 지움(내가)을 나눠 알린다(QA B-03).
       if (e.code === 'NOT_FOUND' && store.tokenFor(id)) {

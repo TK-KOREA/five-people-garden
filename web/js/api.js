@@ -10,7 +10,7 @@ export class ApiError extends Error {
 
 // 8-6 문구
 export const MESSAGES = {
-  BAD_EDIT_CODE: '코드가 바뀌었을 수 있어요. 단톡방 최근 공지를 봐 주세요.',
+  BAD_EDIT_CODE: '코드가 맞지 않아요. 단톡방 최근 공지의 코드를 넣어 주세요.',
   BAD_ADMIN_CODE: '관리 코드가 맞지 않아요.',
   LOCKED_OUT: '코드를 여러 번 틀려 10분간 잠겼어요. 잠시 뒤 다시 해 주세요.',
   RATE_LIMIT: '조금 천천히 써 주세요. 잠시 뒤 다시 보낼 수 있어요.',

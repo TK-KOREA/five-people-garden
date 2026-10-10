@@ -15,7 +15,7 @@
 - 화면: 정적 HTML/JS/CSS → GitHub Pages (`web/`)
 - 서버: Google Apps Script 웹 앱, doGet/doPost (`gas/`)
 - 저장: Google Sheets 한 개, 탭 6개(ideas, replies, questions, config, log, guard)
-- 로그인 없음. 쓰기는 편집 코드, 관리는 관리 코드. 코드는 스크립트 속성에만.
+- 로그인 없음. 쓰기는 참여 코드, 관리는 관리 코드. 코드는 스크립트 속성에만.
 
 ## 꼭 지킬 것
 

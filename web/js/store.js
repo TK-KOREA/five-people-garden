@@ -48,7 +48,7 @@ export function deviceId() {
   return id;
 }
 
-// 편집 코드
+// 참여 코드
 export const editCode = () => load('edit_code', '');
 export const setEditCode = (c) => save('edit_code', c || undefined);
 
@@ -76,6 +76,25 @@ export function setSeenReplies(id, n) {
   save('seen', s);
 }
 
+// 최근에 본 생각 상세(이어 쓰기 포함). 다시 열 때 서버를 기다리지 않고 먼저 그린다. 최근 20개.
+export function cachedIdea(id) {
+  return load('idea_cache', {})[id] || null;
+}
+export function cacheIdea(data) {
+  if (!data || !data.idea) return;
+  const c = load('idea_cache', {});
+  delete c[data.idea.id];
+  c[data.idea.id] = data;
+  const keys = Object.keys(c);
+  for (const k of keys.slice(0, Math.max(0, keys.length - 20))) delete c[k];
+  save('idea_cache', c);
+}
+export function forgetIdea(id) {
+  const c = load('idea_cache', {});
+  delete c[id];
+  save('idea_cache', c);
+}
+
 // 보내지 못한 글(기획서 6-1). request_id는 다시 보낼 때도 같은 값.
 export function outbox() {
   return load('outbox', null);
@@ -88,6 +107,11 @@ export function setOutbox(item) {
 export function wateredToday(id, day) {
   const w = load('watered', {});
   return w[id] === day;
+}
+export function unmarkWatered(id) {
+  const w = load('watered', {});
+  delete w[id];
+  save('watered', w);
 }
 export function markWatered(id, day) {
   const w = load('watered', {});

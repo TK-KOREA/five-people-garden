@@ -29,7 +29,7 @@ function takeCodeFromHash() {
   code = code.trim();
   if (code) store.setEditCode(code);
   history.replaceState(null, '', location.pathname + location.search);
-  if (code) setTimeout(() => toast('편집 코드를 기억했어요. 이제 생각을 나눌 수 있어요.'), 300);
+  if (code) setTimeout(() => toast('이제 생각을 나눌 수 있어요.'), 300);
   return true;
 }
 
@@ -64,6 +64,26 @@ export async function refreshBoot() {
     state.nextCursor = data.next_cursor;
   }
   return data;
+}
+
+/** 방금 나눈 생각을 서버에 다시 묻지 않고 피드 맨 위에 넣는다. 새 응답이 오면 통째로 바뀐다. */
+export function addItemLocally(item) {
+  if (!item || !state.boot) return;
+  state.boot.items = [item, ...(state.boot.items || []).filter((x) => x.id !== item.id)];
+  const counts = state.boot.counts || {};
+  counts['전체'] = (counts['전체'] || 0) + 1;
+  String(item.seat || '').split(',').forEach((s) => { if (s in counts) counts[s] += 1; });
+  if (!state.seat) state.items = state.boot.items;
+  store.save('boot_cache', state.boot);
+}
+
+/** 카드 하나의 값만 바꾼다(이어 쓰기 수, 미리보기, 상태 등). */
+export function patchItem(id, fields) {
+  for (const list of [state.items, state.boot && state.boot.items]) {
+    const it = (list || []).find((x) => x.id === id);
+    if (it) Object.assign(it, fields);
+  }
+  if (state.boot) store.save('boot_cache', state.boot);
 }
 
 function recordVisit() {

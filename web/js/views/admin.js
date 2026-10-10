@@ -123,11 +123,11 @@ function toolsSection() {
     onclick: () => {
       let which = 'edit';
       const input = el('input', { type: 'text', class: 'input', autocomplete: 'off', 'aria-label': '새 코드' });
-      const hint = el('p', { class: 'hint' }, '편집 코드는 휴대폰으로 넣기 쉬운 8자 이상(예: 다섯사람1009).');
+      const hint = el('p', { class: 'hint' }, '참여 코드는 휴대폰으로 넣기 쉬운 8자 이상(예: 다섯사람1009).');
       const seg = el('div', { class: 'chips' });
-      const drawSeg = () => seg.replaceChildren(...[['edit', '편집 코드'], ['admin', '관리 코드']].map(([v, l]) => el('button', {
+      const drawSeg = () => seg.replaceChildren(...[['edit', '참여 코드'], ['admin', '관리 코드']].map(([v, l]) => el('button', {
         type: 'button', class: 'chip' + (which === v ? ' on' : ''), 'aria-pressed': String(which === v),
-        onclick: () => { which = v; hint.textContent = v === 'edit' ? '편집 코드는 휴대폰으로 넣기 쉬운 8자 이상(예: 다섯사람1009).' : '관리 코드는 공백 없이 16자 이상.'; drawSeg(); },
+        onclick: () => { which = v; hint.textContent = v === 'edit' ? '참여 코드는 휴대폰으로 넣기 쉬운 8자 이상(예: 다섯사람1009).' : '관리 코드는 공백 없이 16자 이상.'; drawSeg(); },
       }, l)));
       drawSeg();
       out.replaceChildren(el('form', {
@@ -135,7 +135,7 @@ function toolsSection() {
           e.preventDefault();
           // 길이부터 확인하고 묻는다(QA B-05). 서버도 같은 규칙으로 다시 검사한다.
           const v = input.value.trim();
-          if (which === 'edit' && v.replace(/\s+/g, '').length < 8) return toast('편집 코드는 8자 이상이어야 해요.');
+          if (which === 'edit' && v.replace(/\s+/g, '').length < 8) return toast('참여 코드는 8자 이상이어야 해요.');
           if (which === 'admin' && (v.length < 16 || /\s/.test(v))) return toast('관리 코드는 공백 없이 16자 이상이어야 해요.');
           if (!(await confirmSheet('코드를 바꾸면 옛 코드는 바로 쓸 수 없어요. 바꿀까요?', '바꾸기'))) return;
           try {
@@ -157,6 +157,20 @@ function toolsSection() {
   return el('section', { class: 'admin-tools' }, el('h3', { class: 'section-title' }, '도구'), el('div', { class: 'actions' }, digest, stats, code), out);
 }
 
+/** 단톡방에 보낼 링크: 지금 참여 코드와 #c= 링크. 성도는 이 링크로 열면 코드를 넣지 않아도 된다. */
+function inviteCard(invite) {
+  if (!invite) return null;
+  const copy = async () => toast((await copyText(invite.link)) ? '링크를 복사했어요. 단톡방에 붙여 넣어 주세요.' : invite.link);
+  return el('section', { class: 'invite' },
+    el('h3', { class: 'section-title' }, '단톡방에 보낼 링크'),
+    el('dl', { class: 'defs' },
+      el('dt', null, '참여 코드'), el('dd', { class: 'mono' }, invite.code),
+      el('dt', null, '링크'), el('dd', { class: 'mono' }, invite.link),
+    ),
+    el('button', { type: 'button', class: 'btn', onclick: copy }, '링크 복사'),
+  );
+}
+
 export async function renderAdmin(m) {
   if (!creds().admin_code) return loginForm(m);
   m.replaceChildren(el('p', { class: 'empty' }, '불러오는 중이에요…'));
@@ -173,6 +187,7 @@ export async function renderAdmin(m) {
   }
   const reload = () => renderAdmin(m);
   m.replaceChildren(
+    inviteCard(d.invite),
     el('section', null,
       el('h3', { class: 'section-title' }, `살펴볼 글 ${d.attention.length}`),
       d.attention.length ? el('ul', { class: 'mine-list' }, d.attention.map((x) => itemCard(x, reload))) : el('p', { class: 'hint' }, '경고를 무시한 글이나 신고된 글이 없어요.'),

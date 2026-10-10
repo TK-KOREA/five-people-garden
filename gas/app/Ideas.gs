@@ -257,7 +257,8 @@ function postCreate_(body) {
     appendRows_('ideas', [row]);
     addLog_('create', row.id, '', { title: title, detail: detail, seat: seat, age: age, setting: setting, verse: verse }, author, '');
     bumpRev_();
-    var res = { id: row.id, edit_token: token, flagged: flagged };
+    // 화면이 다시 묻지 않고 바로 그리도록 카드 모양을 함께 돌려준다.
+    var res = { id: row.id, edit_token: token, flagged: flagged, item: feedItem_(row) };
     remember_(requestId, res);
     if (flagged) mailFlagged_('생각', row.id, row.id, title + '\n' + detail + '\n별칭: ' + author);
     return res;
@@ -312,7 +313,11 @@ function postReply_(body) {
     addLog_('reply', row.id, '', { idea_id: ideaId, kind: kind, text: text }, author, '');
     if (idea.status !== before) addLog_('status', ideaId, before, idea.status, '', '자동');
     bumpRev_();
-    var res = { id: row.id, edit_token: token, status: idea.status, flagged: flagged };
+    var res = {
+      id: row.id, edit_token: token, status: idea.status, flagged: flagged,
+      reply: replyItem_(row, idea),
+      idea: { id: idea.id, status: idea.status, reply_count: idea.reply_count, last_reply_preview: idea.last_reply_preview, last_activity_at: idea.last_activity_at }
+    };
     remember_(requestId, res);
     if (flagged) mailFlagged_('이어 쓰기', row.id, ideaId, kind + ': ' + text + '\n별칭: ' + author);
     return res;

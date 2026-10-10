@@ -148,6 +148,9 @@ button { font: inherit; color: inherit; }
   background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
   padding: 16px; margin-bottom: 12px;
 }
+.intro { display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 16px; }
+.intro p { margin: 0; flex: 1; font-size: 0.875rem; line-height: 1.5; }
+.intro .btn { flex: 0 0 auto; }
 .banner { border-color: var(--sun); }
 .since { color: var(--leaf); font-weight: 600; font-size: 0.875rem; margin: 0 0 12px; }
 .compose-line {
@@ -182,8 +185,9 @@ html[data-scale="125"] .num-below, html[data-scale="150"] .num-below { display: 
 
 .question {
   background: var(--sun-soft); border: 1px solid var(--sun); border-radius: 16px;
-  padding: 16px; margin-bottom: 16px;
+  padding: 16px;
 }
+.compose .question { margin-bottom: 4px; }
 .question.small { padding: 12px 16px; }
 .eyebrow { font-size: 0.875rem; font-weight: 700; color: var(--soil); margin-bottom: 4px; }
 .q-text { font-size: 1.0625rem; font-weight: 600; }
@@ -277,6 +281,17 @@ textarea.input { resize: vertical; }
 .more-fields { border: 1px solid var(--line); border-radius: 16px; padding: 0 16px; background: var(--surface); }
 .more-fields summary { min-height: 48px; display: flex; align-items: center; cursor: pointer; font-weight: 600; color: var(--ink-soft); }
 .more-fields[open] { padding-bottom: 12px; }
+.name-line {
+  display: flex; align-items: center; gap: 8px; min-height: 48px; width: 100%;
+  padding: 0 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; text-align: left;
+}
+.name-line strong { flex: 1; font-weight: 600; }
+/* 나누기 버튼은 화면 아래에 붙어 있어 스크롤하지 않아도 보인다 */
+.submit-bar {
+  position: sticky; bottom: 0; z-index: 5;
+  margin: 0 -16px; padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
+  background: var(--bg); border-top: 1px solid var(--line);
+}
 
 /* ---------- 시트 ---------- */
 .sheet {

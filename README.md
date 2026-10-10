@@ -20,7 +20,7 @@
 ## 처음 세팅 (한 번)
 
 1. `cd gas/app && clasp push` (`.clasp.json`은 저장소에 없으므로 처음 한 번 `gas/stage0` 순서대로 만든다)
-2. `clasp open-script` → 편집기에서 `setupAll` 실행, 권한 허용. 실행 로그에 편집 코드와 관리 코드가 나온다.
+2. `clasp open-script` → 편집기에서 `setupAll` 실행, 권한 허용. 실행 로그에 참여 코드와 관리 코드가 나온다.
 3. 운영 전에 관리 화면(`/#/admin`)에서 두 코드를 바꾼다.
 
 코드를 고친 뒤에는 `clasp push` 하고 `clasp redeploy <배포 id> --description "…"`로 같은 주소를 유지한다. 배포 주소는 `web/js/config.js` 한 곳에만 있다.
@@ -31,7 +31,7 @@
 node gas/test/run.js
 ```
 
-화면까지 보려면 흉내 서버와 정적 서버를 띄우고 `http://localhost:8730/?api=http://localhost:8731/exec`를 연다. 흉내 서버의 편집·관리 코드는 터미널에 찍힌다.
+화면까지 보려면 흉내 서버와 정적 서버를 띄우고 `http://localhost:8730/?api=http://localhost:8731/exec`를 연다. 흉내 서버의 참여·관리 코드는 터미널에 찍힌다.
 
 ```bash
 node gas/test/server.js
