@@ -31,6 +31,8 @@
 
 **1단계: 나누고 이어 쓰기 (기획서 7장 목록과 완료 기준).** 0단계는 2026-10-10에 끝났다(`docs/stage0-results.md`, iOS 카톡은 1단계 시험에서 확인).
 
+1단계 서버(`gas/app`)와 화면(`web/`)은 2026-10-10 배포, 실제 시트 setupAll 끝. 지금은 사람 시험 단계: `docs/stage1-checklist.md`. 논리 시험은 `node gas/test/run.js`.
+
 ## 정한 것 (2026-10-10)
 
 페이지 이름 "한 아이 곁에 다섯 사람", 구조 B(깃헙 화면 + Apps Script API), 프리셋 5-1 그대로, 첫 씨앗 다섯 개 넣고 시작, 검색 비노출, 실행 계정 TK 개인 구글 계정, 공개 주소 https://tk-korea.github.io/five-people-garden/ , 저장소 TK-KOREA/five-people-garden(공개).
