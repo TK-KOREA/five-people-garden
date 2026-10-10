@@ -79,7 +79,7 @@
 ### 카톡 인앱에서 안 되는 기능
 
 - Android: navigator.share 없음(링크 복사로 대신), window.print 안 됨. 두 기능에는 기획서 8-6의 "카톡 안에서 안 될 때" 안내를 띄운다.
-- iOS: 결과 없음.
+- iOS: 시험하지 않음(2026-10-10 TK 결정으로 건너뜀). 1단계 시험(세 사람, 연로한 성도)에서 iOS 카톡으로 함께 확인한다.
 
 ### 다시 확인할 것
 
@@ -89,7 +89,9 @@
 
 ## 4. 결정
 
-- 구조(기획서 4장): B 깃헙 화면 + Apps Script API / A iframe —
+- 구조(기획서 4장): **B 깃헙 화면 + Apps Script API로 확정.** GitHub Pages ↔ Apps Script 왕복이 데스크톱과 Android 카톡에서 동작하고, 응답 시간이 목표 안이다.
+- 실행 계정: TK 개인 구글 계정. 공개 주소: https://tk-korea.github.io/five-people-garden/ (GitHub 기본 주소).
+- 0단계 종료: 2026-10-10. iOS 카톡과 Android 재확인 두 가지는 1단계 시험으로 넘긴다.
 - 1단계에 반영할 것:
   - 시트 쓰기는 appendRow를 쓰지 않는다. 새 행 범위를 잡아 `setNumberFormat('@')` 뒤 `setValues`로 한 번에 쓴다.
   - 글 열(제목, 설명, 이어 쓰기, 별칭, 시각, id 등)의 값은 모두 앞에 `'`를 붙여 쓴다. 숫자 열(waters, reply_count, report_count)은 숫자 그대로.
