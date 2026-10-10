@@ -1,6 +1,6 @@
 // 흉내 서버: Apps Script 코드를 메모리 시트로 돌려 화면을 내 컴퓨터에서 시험한다.
 // 실행: node gas/test/server.js  →  http://localhost:8730/?api=http://localhost:8731/exec
-// 편집 코드와 관리 코드는 시작할 때 터미널에 찍힌다.
+// 참여 코드와 관리 코드는 시작할 때 터미널에 찍힌다.
 'use strict';
 
 const http = require('http');
