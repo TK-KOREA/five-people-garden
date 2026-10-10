@@ -72,10 +72,21 @@ function checkRate_(deviceId) {
 
 // ---------- 입력 검사 ----------
 
+/** 글자 수는 이모지도 한 글자로 센다(UTF-16 단위로 세면 이모지가 둘로 쪼개진다). */
+function charLen_(s) {
+  return Array.from(String(s)).length;
+}
+
+/** 앞에서 n글자와 나머지로 나눈다. 이모지 한가운데서 자르지 않는다. */
+function cutChars_(s, n) {
+  var chars = Array.from(String(s));
+  return [chars.slice(0, n).join(''), chars.slice(n).join('')];
+}
+
 function str_(v, max, field, required) {
   var s = v == null ? '' : String(v).replace(/\r\n?/g, '\n').trim();
   if (required && !s) fail_('INVALID', field + ' 필요');
-  if (s.length > max) fail_('INVALID', field + ' 길이');
+  if (charLen_(s) > max) fail_('INVALID', field + ' 길이');
   return s;
 }
 

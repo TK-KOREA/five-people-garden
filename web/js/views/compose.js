@@ -1,7 +1,7 @@
 // 생각 나누기(입력)와 내 생각 고치기. 한 줄 제목만 필수, 연결은 "함께"가 미리 골라져 있다(기획서 3-1, 3-5).
 import { get, post, messageFor } from '../api.js';
 import * as store from '../store.js';
-import { el, toast, autoGrow } from '../ui.js';
+import { el, toast, autoGrow, charLen, cutChars } from '../ui.js';
 import { state, go, refreshBoot } from '../app.js';
 import { nicknameField } from './common.js';
 import { sendWrite, privacyCheck } from '../write.js';
@@ -64,6 +64,8 @@ export async function renderCompose(m, { seat = '', questionId = '', parentId = 
 
   const draft = editing ? null : store.load('compose_draft', null);
   const init = original || draft || {};
+  // request_id는 쓰던 글마다 하나. 다시 보내도(보내지 못한 글 안내 포함) 같은 값이라 서버가 한 번만 저장한다.
+  const requestId = (draft && draft.request_id) || store.randomId(24);
   const seats = split(init.seat || seat || '함께');
   const ages = split(init.age);
   const settings = split(init.setting);
@@ -93,7 +95,7 @@ export async function renderCompose(m, { seat = '', questionId = '', parentId = 
   title.value = init.title || '';
   const counter = el('p', { class: 'hint' });
   const drawCounter = () => {
-    const n = title.value.trim().length;
+    const n = charLen(title.value.trim());
     counter.textContent = n > c.limits.title ? `${n}자 · ${c.limits.title}자를 넘는 부분은 설명으로 옮겨요` : '자판의 마이크를 눌러 말로 써도 돼요.';
   };
   drawCounter();
@@ -111,20 +113,32 @@ export async function renderCompose(m, { seat = '', questionId = '', parentId = 
     return { title: title.value.trim(), detail: detail.value.trim(), seat: seats.join(','), age: ages.join(','), setting: settings.join(','), verse: verse.value.trim() };
   }
   function saveDraft() {
-    if (!editing) store.save('compose_draft', values());
+    if (!editing) store.save('compose_draft', { ...values(), request_id: requestId });
   }
   [title, detail, verse].forEach((x) => x.addEventListener('input', () => { saveDraft(); if (x === title) drawCounter(); }));
 
   const submit = el('button', { type: 'submit', class: 'btn wide' }, editing ? '고치기' : '나누기');
 
+  let busy = false;
   async function onSubmit(e) {
     e.preventDefault();
+    if (busy) return; // 같은 순간 여러 번 눌러도 한 번만
+    busy = true;
+    try {
+      await submitOnce();
+    } finally {
+      busy = false;
+    }
+  }
+
+  async function submitOnce() {
     const v = values();
     if (!v.title) { title.focus(); return toast('한 줄만 써 주셔도 돼요.'); }
     // 제목이 넘치면 자르지 않고 넘친 부분을 설명 앞으로 옮긴다(기획서 3-4).
-    if (v.title.length > c.limits.title) {
-      v.detail = v.title.slice(c.limits.title).trim() + (v.detail ? '\n' + v.detail : '');
-      v.title = v.title.slice(0, c.limits.title).trim();
+    if (charLen(v.title) > c.limits.title) {
+      const [head, rest] = cutChars(v.title, c.limits.title);
+      v.detail = rest.trim() + (v.detail ? '\n' + v.detail : '');
+      v.title = head.trim();
       title.value = v.title;
       detail.value = v.detail;
       drawCounter();
@@ -156,7 +170,8 @@ export async function renderCompose(m, { seat = '', questionId = '', parentId = 
     }
 
     nick.remember();
-    const body = { ...v, author: nick.value, question_id: question ? question.id : (questionId || ''), parent_id: parentId };
+    saveDraft();
+    const body = { ...v, author: nick.value, question_id: question ? question.id : (questionId || ''), parent_id: parentId, request_id: requestId };
     const data = await sendWrite('create', body, submit);
     if (!data) return;
     store.save('compose_draft', undefined);

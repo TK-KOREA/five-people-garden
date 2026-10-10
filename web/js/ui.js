@@ -150,6 +150,17 @@ export function confirmSheet(message, okLabel = '네') {
   });
 }
 
+/** 글자 수는 이모지도 한 글자로 센다. 서버(Guard.gs charLen_)와 같은 규칙. */
+export function charLen(s) {
+  return Array.from(String(s || '')).length;
+}
+
+/** 앞에서 n글자와 나머지로 나눈다. 이모지 한가운데서 자르지 않는다. */
+export function cutChars(s, n) {
+  const chars = Array.from(String(s || ''));
+  return [chars.slice(0, n).join(''), chars.slice(n).join('')];
+}
+
 export function isKakao() {
   return /KAKAOTALK/i.test(navigator.userAgent);
 }

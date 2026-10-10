@@ -133,6 +133,10 @@ function toolsSection() {
       out.replaceChildren(el('form', {
         onsubmit: async (e) => {
           e.preventDefault();
+          // 길이부터 확인하고 묻는다(QA B-05). 서버도 같은 규칙으로 다시 검사한다.
+          const v = input.value.trim();
+          if (which === 'edit' && v.replace(/\s+/g, '').length < 8) return toast('편집 코드는 8자 이상이어야 해요.');
+          if (which === 'admin' && (v.length < 16 || /\s/.test(v))) return toast('관리 코드는 공백 없이 16자 이상이어야 해요.');
           if (!(await confirmSheet('코드를 바꾸면 옛 코드는 바로 쓸 수 없어요. 바꿀까요?', '바꾸기'))) return;
           try {
             const d = await adminPost('set_code', { which, new_code: input.value.trim() });

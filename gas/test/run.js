@@ -267,6 +267,19 @@ test('잘못된 요청', () => {
   err(env.get({ action: 'mine', ids: 'R-20261010-zzzzzz,bad' }), 'INVALID');
 });
 
+test('이모지: 60자 경계에서 쪼개지지 않고, 글자 수는 이모지를 한 글자로 센다 (QA B-02)', () => {
+  env.tick(61 * 1000);
+  const lone = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/;
+  const d = ok(env.post({ action: 'create', edit_code: '새코드다섯사람2026', device_id: dev(70), request_id: rq(), title: '가'.repeat(59) + '😀끝' }));
+  const i = ok(env.get({ action: 'idea', id: d.id })).idea;
+  assert(!lone.test(i.title) && !lone.test(i.detail), 'no lone surrogate');
+  assert.strictEqual(i.title, '가'.repeat(59) + '😀');
+  assert.strictEqual(i.detail, '끝');
+  // UTF-16으로는 61이지만 글자로는 60 → 고치기 통과
+  ok(env.post({ action: 'update', id: d.id, edit_token: d.edit_token, title: '나'.repeat(59) + '😀' }));
+  err(env.post({ action: 'update', id: d.id, edit_token: d.edit_token, title: '나'.repeat(60) + '😀' }), 'INVALID');
+});
+
 test('마지막: 모든 글 칸에 따옴표', () => {
   for (const [name, sh] of Object.entries(env.sheets)) {
     sh.data.slice(1).forEach((row, r) => (row || []).forEach((v, c) => {

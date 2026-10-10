@@ -225,11 +225,12 @@ function postCreate_(body) {
   var title = str_(body.title, 10000, 'title', true);
   var detail = str_(body.detail, 10000, 'detail');
   // 제목이 넘치면 자르지 않고 넘친 부분을 설명 앞으로 옮긴다(기획서 3-4).
-  if (title.length > cfg.limit_title) {
-    detail = title.slice(cfg.limit_title).trim() + (detail ? '\n' + detail : '');
-    title = title.slice(0, cfg.limit_title).trim();
+  if (charLen_(title) > cfg.limit_title) {
+    var parts = cutChars_(title, cfg.limit_title);
+    title = parts[0].trim();
+    detail = parts[1].trim() + (detail ? '\n' + detail : '');
   }
-  if (detail.length > cfg.limit_detail) fail_('INVALID', 'detail 길이');
+  if (charLen_(detail) > cfg.limit_detail) fail_('INVALID', 'detail 길이');
   var seat = listValue_(body.seat, cfg.seats, 'seat') || '함께';
   var age = listValue_(body.age, cfg.ages, 'age');
   var setting = listValue_(body.setting, cfg.settings, 'setting');
@@ -247,7 +248,7 @@ function postCreate_(body) {
     var token = Utilities.getUuid();
     var flagged = looksPrivate_([title, detail, author]);
     var row = {
-      id: newId_('I'), created_at: now, updated_at: now, title: title, summary: detail.slice(0, 140),
+      id: newId_('I'), created_at: now, updated_at: now, title: title, summary: cutChars_(detail, 140)[0],
       detail: detail, age: age, seat: seat, setting: setting, verse: verse, status: '씨앗',
       question_id: questionId, parent_ids: parentId, waters: 0, author: author, deleted: false,
       last_activity_at: now, reply_count: 0, last_reply_preview: '', report_count: 0, hidden: false,
@@ -270,7 +271,7 @@ function refreshIdea_(idea, raiseStatus) {
     .sort(function (a, b) { return a.created_at < b.created_at ? -1 : a.created_at > b.created_at ? 1 : 0; });
   idea.reply_count = replies.length;
   var last = replies[replies.length - 1];
-  idea.last_reply_preview = last ? (last.kind + ' · ' + last.author + ' — ' + last.text.replace(/\s+/g, ' ').slice(0, 60)).slice(0, 80) : '';
+  idea.last_reply_preview = last ? cutChars_(last.kind + ' · ' + last.author + ' — ' + cutChars_(last.text.replace(/\s+/g, ' '), 60)[0], 80)[0] : '';
   if (raiseStatus && idea.status !== '쉼') {
     var tried = replies.filter(function (r) { return r.kind === '해 봤어요'; }).length;
     var target = tried >= 2 ? '열매' : tried >= 1 ? '시도' : replies.length ? '싹' : '씨앗';
@@ -353,7 +354,7 @@ function postUpdate_(body) {
         else v = listValue_(body.setting, cfg.settings, 'setting');
         if (v !== row[f]) { before[f] = row[f]; after[f] = v; row[f] = v; }
       });
-      row.summary = row.detail.slice(0, 140);
+      row.summary = cutChars_(row.detail, 140)[0];
     } else {
       if ('text' in body) {
         var t = str_(body.text, cfg.limit_reply, 'text', true);

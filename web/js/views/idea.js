@@ -95,6 +95,8 @@ function replyBar(ideaId, onSent) {
   let kind = '덧붙임';
   const ta = autoGrow(el('textarea', { class: 'input bar-input', rows: '1', maxlength: '500', placeholder: KIND_HINT[kind], 'aria-label': '이 생각에 이어서 써 주세요', enterkeyhint: 'send' }));
   const draftKey = 'reply_draft_' + ideaId;
+  // 쓰던 이어 쓰기마다 request_id 하나. 다시 보내도 서버가 한 번만 저장한다.
+  const rqKey = 'reply_rq_' + ideaId;
   ta.value = store.load(draftKey, '');
   ta.addEventListener('input', () => store.save(draftKey, ta.value || undefined));
   const kinds = el('div', { class: 'seg', role: 'radiogroup', 'aria-label': '이어 쓰기 종류' });
@@ -109,7 +111,17 @@ function replyBar(ideaId, onSent) {
   nick.addEventListener('click', async () => { await nicknameSheet(state.boot); drawNick(); });
 
   const send = el('button', { type: 'button', class: 'btn send', 'aria-label': '보내기' }, '보내기');
+  let busy = false;
   send.addEventListener('click', async () => {
+    if (busy) return;
+    busy = true;
+    try {
+      await sendOnce();
+    } finally {
+      busy = false;
+    }
+  });
+  async function sendOnce() {
     const text = ta.value.trim();
     if (!text) return ta.focus();
     if (!store.load('nickname', '')) {
@@ -121,14 +133,17 @@ function replyBar(ideaId, onSent) {
     const choice = await privacyCheck(fields);
     if (choice === 'edit') return ta.focus();
     if (choice === 'replaced') { ta.value = fields.text; store.save(draftKey, ta.value); return ta.focus(); }
-    const data = await sendWrite('reply', { idea_id: ideaId, kind, text: fields.text, author: fields.author }, send);
+    let rq = store.load(rqKey, '');
+    if (!rq) { rq = store.randomId(24); store.save(rqKey, rq); }
+    const data = await sendWrite('reply', { idea_id: ideaId, kind, text: fields.text, author: fields.author, request_id: rq }, send);
     if (!data) return;
+    store.save(rqKey, undefined);
     ta.value = '';
     ta.style.height = 'auto';
     store.save(draftKey, undefined);
     toast(data.status === '열매' ? '이어 썼어요. 열매가 맺혔어요.' : '이어 썼어요.');
     onSent();
-  });
+  }
 
   const bar = el('div', { class: 'bar', role: 'region', 'aria-label': '이어 쓰기' },
     el('div', { class: 'bar-head' }, kinds, nick),
@@ -231,9 +246,16 @@ export async function renderIdea(m, id) {
       }
     } catch (e) {
       if (!m.isConnected) return;
-      const msg = e.code === 'NOT_FOUND' && store.tokenFor(id)
-        ? '이름이 있어 잠시 가렸어요. 역할로 바꿔 다시 나눠 주세요.'
-        : messageFor(e);
+      let msg = messageFor(e);
+      // 내 글이면 숨김(관리자)과 지움(내가)을 나눠 알린다(QA B-03).
+      if (e.code === 'NOT_FOUND' && store.tokenFor(id)) {
+        try {
+          const mine = (await get('mine', { ids: id })).ideas[0];
+          if (mine && mine.hidden) msg = '이름이 있어 잠시 가렸어요. 역할로 바꿔 다시 나눠 주세요.';
+          else if (mine && mine.deleted) msg = '지운 생각이에요.';
+        } catch (e2) { /* 기본 문구 */ }
+        if (!m.isConnected) return;
+      }
       head.replaceChildren(el('p', { class: 'empty' }, msg));
       body.replaceChildren(el('button', { type: 'button', class: 'btn ghost', onclick: () => go('#/') }, '나눔으로 가기'));
     }

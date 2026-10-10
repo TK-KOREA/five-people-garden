@@ -116,7 +116,7 @@ function postDigest_(body) {
     lines.push('해 봤어요');
     pickTried.forEach(function (r) {
       var idea = findById_('ideas', r.idea_id);
-      lines.push('· ' + (idea ? idea.title : '') + ' — ' + r.text.replace(/\s+/g, ' ').slice(0, 40),
+      lines.push('· ' + (idea ? idea.title : '') + ' — ' + cutChars_(r.text.replace(/\s+/g, ' '), 40)[0],
         '  ' + PUBLIC_URL + '#/idea/' + r.idea_id);
     });
     lines.push('');

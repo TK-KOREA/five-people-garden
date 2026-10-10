@@ -38,6 +38,9 @@ export function ideaCard(item) {
   );
 }
 
+// 펼친 묶음은 "생각 더 보기"로 다시 그려도 펼친 채 둔다(QA B-06). 묶음의 첫 글 id로 기억한다.
+const expandedRuns = new Set();
+
 /** 같은 기기(dk)의 글이 연달아 나오면 FOLD_AFTER개 뒤를 접는다. */
 function cardsWithFolds(items) {
   const out = [];
@@ -46,13 +49,14 @@ function cardsWithFolds(items) {
     let j = i;
     while (j + 1 < items.length && items[i].dk && items[j + 1].dk === items[i].dk) j++;
     const run = items.slice(i, j + 1);
-    run.slice(0, FOLD_AFTER).forEach((it) => out.push(ideaCard(it)));
-    if (run.length > FOLD_AFTER) {
+    const open = expandedRuns.has(run[0].id);
+    (open ? run : run.slice(0, FOLD_AFTER)).forEach((it) => out.push(ideaCard(it)));
+    if (!open && run.length > FOLD_AFTER) {
       const rest = run.slice(FOLD_AFTER);
       const holder = el('div', { class: 'fold' });
       const btn = el('button', {
         type: 'button', class: 'fold-btn',
-        onclick: () => holder.replaceWith(...rest.map(ideaCard)),
+        onclick: () => { expandedRuns.add(run[0].id); holder.replaceWith(...rest.map(ideaCard)); },
       }, `${run[0].author}의 생각 ${rest.length}개 더`);
       holder.append(btn);
       out.push(holder);
@@ -83,6 +87,17 @@ function sinceCard() {
   return el('p', { class: 'since' }, `지난번 이후 새 생각 ${newIdeas} · 이어 쓰기 ${newReplies}`);
 }
 
+/** 보낸 글의 쓰던 내용을 지운다. 남겨 두면 다시 눌러 같은 글이 두 번 생긴다(QA B-01). */
+function clearDraftFor(box) {
+  if (box.action === 'create') {
+    const d = store.load('compose_draft', null);
+    if (d && (d.request_id === box.body.request_id || d.title === box.body.title)) store.save('compose_draft', undefined);
+  } else if (box.action === 'reply') {
+    store.save('reply_draft_' + box.body.idea_id, undefined);
+    store.save('reply_rq_' + box.body.idea_id, undefined);
+  }
+}
+
 function outboxBanner(redraw) {
   const box = store.outbox();
   if (!box) return null;
@@ -91,6 +106,7 @@ function outboxBanner(redraw) {
     onclick: async () => {
       const data = await sendWrite(box.action, box.body, sendBtn);
       if (data) {
+        clearDraftFor(box);
         toast(box.action === 'reply' ? '이어 썼어요.' : '생각을 나눴어요.');
         await refreshBoot().catch(() => {});
         redraw();
