@@ -1,39 +1,45 @@
-# 다섯 사람 아이디어 정원
+# 한 아이 곁에 다섯 사람
 
-## Claude Code로 이어서 하기
+교회 성도들이 "한 아이 곁에 의미 있는 다섯 사람(친구, 부모, 봉사, 다른 부모, 조부모)"을 세우는 방안을 나누고 이어 쓰는 모바일 웹 페이지.
 
-1. 이 폴더를 원하는 곳에 둡니다. 예: `~/Projects/five-people-garden`
-2. 터미널을 열고 이 폴더로 이동해 Claude Code를 시작합니다.
-
-   ```bash
-   cd ~/Projects/five-people-garden
-   claude
-   ```
-
-   Claude Code가 아직 없으면 먼저 설치합니다.
-
-   ```bash
-   curl -fsSL https://claude.ai/install.sh | bash
-   ```
-
-3. 첫 메시지로 아래를 붙여 넣습니다.
-
-   ```text
-   CLAUDE.md와 docs/plan.md를 읽고, 0단계 시험 페이지와 최소 Apps Script를 만들어 줘. 깃 저장소도 초기화해 줘.
-   ```
-
-Claude Code는 시작할 때 `CLAUDE.md`를 자동으로 읽으므로, 그 안의 배경과 지켜야 할 것을 따로 설명하지 않아도 됩니다.
+- 페이지: https://tk-korea.github.io/five-people-garden/
+- 기준 문서: [docs/plan.md](docs/plan.md) (기획서·디자인 가이드), [docs/stage0-results.md](docs/stage0-results.md) (0단계 시험 결과)
 
 ## 폴더
 
 | 경로 | 내용 |
 | --- | --- |
 | CLAUDE.md | Claude Code가 매번 읽는 프로젝트 안내 |
-| docs/plan.md | 개발기획서·디자인 가이드 (원본: Claude 문서, 아래 링크) |
-| docs/background.md | 배경, 구절, 처음 방안, 질문, 진행 기록 |
+| docs/ | 기획서, 배경, 0단계 결과 |
 | design/ | 시안 소스와 설명 |
-| web/ | (만들 곳) GitHub Pages 화면 |
-| gas/ | (만들 곳) Apps Script 코드 |
+| web/ | GitHub Pages 화면 (`index.html`, `css/`, `js/`). `web/stage0/`은 0단계 시험 페이지 |
+| gas/app/ | Apps Script 서버 (시트에 붙은 스크립트, clasp로 올림) |
+| gas/stage0/ | 0단계 최소 Apps Script (보관용) |
+| gas/test/ | Node 흉내 환경: API 논리 시험과 흉내 서버 |
+
+## 처음 세팅 (한 번)
+
+1. `cd gas/app && clasp push` (`.clasp.json`은 저장소에 없으므로 처음 한 번 `gas/stage0` 순서대로 만든다)
+2. `clasp open-script` → 편집기에서 `setupAll` 실행, 권한 허용. 실행 로그에 편집 코드와 관리 코드가 나온다.
+3. 운영 전에 관리 화면(`/#/admin`)에서 두 코드를 바꾼다.
+
+코드를 고친 뒤에는 `clasp push` 하고 `clasp redeploy <배포 id> --description "…"`로 같은 주소를 유지한다. 배포 주소는 `web/js/config.js` 한 곳에만 있다.
+
+## 내 컴퓨터에서 시험
+
+```bash
+node gas/test/run.js
+```
+
+화면까지 보려면 흉내 서버와 정적 서버를 띄우고 `http://localhost:8730/?api=http://localhost:8731/exec`를 연다. 흉내 서버의 편집·관리 코드는 터미널에 찍힌다.
+
+```bash
+node gas/test/server.js
+```
+
+```bash
+cd web && python3 -m http.server 8730
+```
 
 ## 원본 링크
 

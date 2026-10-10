@@ -82,7 +82,7 @@ function makeRange(sh, r, c, nr, nc) {
   return range;
 }
 
-function makeEnv() {
+function makeEnv({ realClock = false } = {}) {
   const sheets = {};
   const ss = {
     getSheetByName: (n) => sheets[n] || null,
@@ -109,9 +109,10 @@ function makeEnv() {
   }
 
   const RealDate = Date;
+  const nowMs = () => (realClock ? RealDate.now() : clock);
   class FakeDate extends RealDate {
-    constructor(...a) { if (a.length) super(...a); else super(clock); }
-    static now() { return clock; }
+    constructor(...a) { if (a.length) super(...a); else super(nowMs()); }
+    static now() { return nowMs(); }
   }
 
   const ctx = {
@@ -176,6 +177,8 @@ function makeEnv() {
     get(params) { fresh(); return JSON.parse(ctx.doGet({ parameter: params }).content); },
     post(body) { fresh(); return JSON.parse(ctx.doPost({ postData: { contents: JSON.stringify(body) } }).content); },
     call(fn) { fresh(); return ctx[fn](); },
+    rawGet(params) { fresh(); return ctx.doGet({ parameter: params }).content; },
+    rawPost(body) { fresh(); return ctx.doPost({ postData: { contents: body } }).content; },
   };
 }
 
