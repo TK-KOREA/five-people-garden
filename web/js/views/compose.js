@@ -1,7 +1,7 @@
 // 생각 나누기(입력)와 내 생각 고치기. 한 줄 제목만 필수, 연결은 "함께"가 미리 골라져 있다(기획서 3-1, 3-5).
 import { get, post, messageFor } from '../api.js';
 import * as store from '../store.js';
-import { el, toast, autoGrow, charLen, cutChars } from '../ui.js';
+import { el, toast, autoGrow, charLen, cutChars, busy } from '../ui.js';
 import { state, go, refreshBoot, addItemLocally } from '../app.js';
 import { nicknameSheet } from './common.js';
 import { sendWrite, privacyCheck } from '../write.js';
@@ -165,16 +165,17 @@ export async function renderCompose(m, { seat = '', questionId = '', parentId = 
     }
 
     if (editing) {
-      submit.disabled = true;
+      const done = busy(submit, '고치는 중…');
       try {
         await post('update', { id: editId, edit_token: store.tokenFor(editId), ...v });
         toast('고쳤어요.');
         store.forgetIdea(editId);
         refreshBoot().catch(() => {});
+        done();
         go('#/idea/' + editId);
       } catch (err) {
+        done();
         toast(messageFor(err));
-        submit.disabled = false;
       }
       return;
     }

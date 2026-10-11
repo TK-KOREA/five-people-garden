@@ -1,7 +1,7 @@
 // 나눔(첫 화면): 처음 안내, 지난번 이후 새 소식, 나누기 줄, 다섯 연결 띠, 오늘의 질문, 생각 카드.
 import { get, messageFor } from '../api.js';
 import * as store from '../store.js';
-import { el, fill, icon, seatBadges, relTime, toast } from '../ui.js';
+import { el, fill, icon, seatBadges, relTime, toast, busy } from '../ui.js';
 import { state, go, refreshBoot } from '../app.js';
 import { waterButton } from './common.js';
 import { sendWrite } from '../write.js';
@@ -210,7 +210,7 @@ export async function renderFeed(m, { restoreScroll } = {}) {
 
   async function loadMore(e) {
     const btn = e.currentTarget;
-    btn.disabled = true;
+    const done = busy(btn, '불러오는 중…');
     try {
       const params = { cursor: state.nextCursor };
       if (state.seat) params.seat = state.seat;
@@ -219,8 +219,8 @@ export async function renderFeed(m, { restoreScroll } = {}) {
       state.nextCursor = d.next_cursor;
       drawList();
     } catch (err) {
+      done();
       toast(messageFor(err));
-      btn.disabled = false;
     }
   }
 

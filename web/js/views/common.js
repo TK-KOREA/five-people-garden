@@ -1,7 +1,7 @@
 // 여러 화면이 함께 쓰는 조각: 물 주기 버튼, 살펴봐 주세요.
 import { post, messageFor } from '../api.js';
 import * as store from '../store.js';
-import { el, icon, toast, confirmSheet, openSheet } from '../ui.js';
+import { el, icon, toast, confirmSheet, openSheet, busy } from '../ui.js';
 
 /** 물 준 수는 1 이상일 때만 보인다(설계 원칙 5). */
 /** withText: 상세 화면처럼 자리가 있으면 "물 주기 3"처럼 글자를 붙인다. 카드는 아이콘과 숫자만. */
@@ -40,19 +40,22 @@ export function waterButton(targetId, waters, { small, withText } = {}) {
   return btn;
 }
 
-export async function reportTarget(targetId) {
+export async function reportTarget(targetId, btn) {
   const yes = await confirmSheet('이 글을 살펴봐 달라고 관리자에게 알릴까요?', '알리기');
   if (!yes) return;
+  const done = busy(btn, '알리는 중…');
   try {
     await post('report', { device_id: store.deviceId(), target_id: targetId });
     toast('살펴봐 달라고 알렸어요. 고마워요.');
   } catch (err) {
     toast(messageFor(err));
+  } finally {
+    done();
   }
 }
 
 export function reportButton(targetId, label = '살펴봐 주세요') {
-  return el('button', { type: 'button', class: 'text-link', onclick: (e) => { e.stopPropagation(); reportTarget(targetId); } }, icon('flag', 16), label);
+  return el('button', { type: 'button', class: 'text-link', onclick: (e) => { e.stopPropagation(); reportTarget(targetId, e.currentTarget); } }, icon('flag', 16), label);
 }
 
 // ---------- 별칭 칩 ----------

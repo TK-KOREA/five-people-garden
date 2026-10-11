@@ -1,7 +1,7 @@
 // 쓰기 흐름: 개인정보 경고 → 참여 코드 확인 → 보내기(보내지 못하면 기기에 남김). 기획서 3-5, 5-1, 6-1.
 import { post, messageFor, MESSAGES } from './api.js';
 import * as store from './store.js';
-import { el, openSheet, toast } from './ui.js';
+import { el, openSheet, toast, busy } from './ui.js';
 import { findPrivate, replaceNames } from './privacy.js';
 
 /** 글 안에서 걸린 부분을 <mark>로 보여 준다(텍스트 노드만 씀). */
@@ -77,12 +77,13 @@ export function promptCode(message) {
  * create/reply를 보낸다. 코드가 없거나 틀리면 묻고 다시 보낸다.
  * 성공하면 결과, 못 보내면 null. 보내지 못한 글은 outbox에 남는다.
  */
-export async function sendWrite(action, body, button) {
+export async function sendWrite(action, body, button, label = action === 'reply' ? '보내는 중…' : '나누는 중…') {
   body.request_id = body.request_id || store.randomId(24);
   body.device_id = store.deviceId();
   store.setOutbox({ action, body, at: Date.now() });
   if (button) button.disabled = true;
   let message = '';
+  let done = null; // 서버와 주고받는 동안만 버튼을 "진행 중"으로(코드를 묻는 동안은 아님)
   try {
     for (let attempt = 0; attempt < 4; attempt++) {
       let code = store.editCode();
@@ -91,12 +92,14 @@ export async function sendWrite(action, body, button) {
         if (!code) return null;
       }
       try {
+        done = busy(button, label);
         const data = await post(action, { ...body, edit_code: code });
         store.setEditCode(code);
         store.setOutbox(null);
         if (data.edit_token) store.addToken(data.id, data.edit_token);
         return data;
       } catch (e) {
+        if (done) { done(); done = null; if (button) button.disabled = true; }
         if (e.code === 'BAD_EDIT_CODE') {
           store.setEditCode('');
           message = MESSAGES.BAD_EDIT_CODE;
@@ -109,6 +112,7 @@ export async function sendWrite(action, body, button) {
     }
     return null;
   } finally {
+    if (done) done();
     if (button) button.disabled = false;
   }
 }

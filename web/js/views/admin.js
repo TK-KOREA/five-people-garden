@@ -1,14 +1,15 @@
 // 관리(관리 코드로만 열림, 탭에 없음). 기획서 3-3 관리, 7장 1단계 관리 화면.
 import { post, messageFor } from '../api.js';
 import * as store from '../store.js';
-import { el, toast, confirmSheet, openSheet, copyText, autoGrow, relTime } from '../ui.js';
+import { el, toast, confirmSheet, openSheet, copyText, autoGrow, relTime, withBusy } from '../ui.js';
 
 function creds() {
   return { admin_code: store.sessionLoad('admin_code'), admin_name: store.load('admin_name', ''), device_id: store.deviceId() };
 }
 
-async function adminPost(action, body = {}) {
-  return post(action, { ...creds(), ...body });
+/** btn을 주면 보내는 동안 그 버튼을 "진행 중"(label)으로 바꾼다. */
+async function adminPost(action, body = {}, btn = null, label = '처리 중…') {
+  return withBusy(btn, label, () => post(action, { ...creds(), ...body }));
 }
 
 function loginForm(m, message) {
@@ -40,16 +41,14 @@ function editSheet(item, reload) {
   const save = el('button', {
     type: 'button', class: 'btn',
     onclick: async () => {
-      save.disabled = true;
       try {
         const body = isIdea ? { id: item.id, title: title.value.trim(), detail: text.value.trim() } : { id: item.id, text: text.value.trim() };
-        await adminPost('update', body);
+        await adminPost('update', body, save, '고치는 중…');
         dlg.close();
         toast('고쳤어요.');
         reload();
       } catch (e) {
         toast(messageFor(e));
-        save.disabled = false;
       }
     },
   }, '고치기');
@@ -63,10 +62,11 @@ function editSheet(item, reload) {
 function itemCard(item, reload, { hidden } = {}) {
   const act = (action, label, confirmMsg) => el('button', {
     type: 'button', class: 'btn ghost small',
-    onclick: async () => {
+    onclick: async (ev) => {
+      const btn = ev.currentTarget;
       if (confirmMsg && !(await confirmSheet(confirmMsg, label))) return;
       try {
-        await adminPost(action, { target_id: item.id });
+        await adminPost(action, { target_id: item.id }, btn, { hide: '숨기는 중…', unhide: '되돌리는 중…', erase: '지우는 중…' }[action]);
         toast(action === 'hide' ? '숨겼어요. 관리 화면에서 되돌릴 수 있어요.' : action === 'erase' ? '지웠어요.' : '되돌렸어요.');
         reload();
       } catch (e) { toast(messageFor(e)); }
@@ -97,7 +97,7 @@ function toolsSection() {
     type: 'button', class: 'btn ghost small',
     onclick: async () => {
       try {
-        const d = await adminPost('digest');
+        const d = await adminPost('digest', {}, digest, '만드는 중…');
         const ta = el('textarea', { class: 'input', rows: '10', readonly: true });
         ta.value = d.text;
         out.replaceChildren(el('p', { class: 'label' }, '이번 주 소식 (단톡방에 붙여 넣기)'), ta,
@@ -109,7 +109,7 @@ function toolsSection() {
     type: 'button', class: 'btn ghost small',
     onclick: async () => {
       try {
-        const s = await adminPost('stats');
+        const s = await adminPost('stats', {}, stats, '불러오는 중…');
         out.replaceChildren(el('p', { class: 'label' }, '정원 상태'), el('dl', { class: 'defs' }, [
           ['쓴 기기', s.writer_devices], ['나눈 생각', s.ideas], ['이어 쓰기가 달린 생각', `${s.ideas_with_replies} (${s.reply_ratio}%)`],
           ['해 봤어요', s.tried], ['다녀간 기기 (30일)', s.visit_devices_30d], ['이틀 이상 다녀간 기기', s.returning_devices_30d],
@@ -139,7 +139,7 @@ function toolsSection() {
           if (which === 'admin' && (v.length < 16 || /\s/.test(v))) return toast('관리 코드는 공백 없이 16자 이상이어야 해요.');
           if (!(await confirmSheet('코드를 바꾸면 옛 코드는 바로 쓸 수 없어요. 바꿀까요?', '바꾸기'))) return;
           try {
-            const d = await adminPost('set_code', { which, new_code: input.value.trim() });
+            const d = await adminPost('set_code', { which, new_code: input.value.trim() }, e.submitter, '바꾸는 중…');
             if (which === 'admin') store.sessionSave('admin_code', input.value.trim());
             if (d.notice) {
               const ta = el('textarea', { class: 'input', rows: '5', readonly: true });

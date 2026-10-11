@@ -112,6 +112,44 @@ export function relTime(iso) {
   return `${k.getUTCMonth() + 1}월 ${k.getUTCDate()}일`;
 }
 
+// ---------- 진행 중 표시 ----------
+
+/**
+ * 누른 버튼을 "진행 중"으로 바꾼다: 잠그고, 돌아가는 표시와 label(예: "나누는 중…")을 보여 준다.
+ * 폭을 고정해 화면이 흔들리지 않게 하고, 6초가 넘으면 "조금 더 걸려요…"로 바꾼다(0단계: 약 7%가 오래 걸림).
+ * 돌려준 함수를 부르면 원래대로 돌아간다.
+ */
+export function busy(btn, label) {
+  if (!btn) return () => {};
+  const kids = [...btn.childNodes];
+  const wasDisabled = btn.disabled;
+  btn.style.minWidth = btn.offsetWidth + 'px';
+  btn.disabled = true;
+  btn.classList.add('is-busy');
+  btn.setAttribute('aria-busy', 'true');
+  const text = el('span', null, label);
+  btn.replaceChildren(el('span', { class: 'spinner', 'aria-hidden': 'true' }), text);
+  const slow = setTimeout(() => { text.textContent = '조금 더 걸려요…'; }, 6000);
+  return () => {
+    clearTimeout(slow);
+    btn.replaceChildren(...kids);
+    btn.disabled = wasDisabled;
+    btn.classList.remove('is-busy');
+    btn.removeAttribute('aria-busy');
+    btn.style.minWidth = '';
+  };
+}
+
+/** 버튼을 진행 중으로 바꾸고 fn을 기다린 뒤 되돌린다. */
+export async function withBusy(btn, label, fn) {
+  const done = busy(btn, label);
+  try {
+    return await fn();
+  } finally {
+    done();
+  }
+}
+
 // ---------- 토스트 ----------
 
 let toastTimer;

@@ -24,6 +24,31 @@ export function messageFor(err) {
   return MESSAGES[err && err.code] || MESSAGES.NETWORK;
 }
 
+// 화면 맨 위 얇은 진행 막대. 서버와 주고받는 동안 보인다. 0.2초 안에 끝나면 띄우지 않는다(깜빡임 방지).
+let inflight = 0;
+let showTimer = null;
+function progressBar() {
+  let bar = document.getElementById('progress');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'progress';
+    bar.setAttribute('role', 'progressbar');
+    bar.setAttribute('aria-label', '불러오는 중');
+    document.body.append(bar);
+  }
+  return bar;
+}
+function track(delta) {
+  inflight = Math.max(0, inflight + delta);
+  if (inflight > 0 && !showTimer) {
+    showTimer = setTimeout(() => progressBar().classList.add('show'), 200);
+  } else if (inflight === 0) {
+    clearTimeout(showTimer);
+    showTimer = null;
+    progressBar().classList.remove('show');
+  }
+}
+
 let lastRev = null;
 export const currentRev = () => lastRev;
 
@@ -50,6 +75,15 @@ async function once(url, init) {
 }
 
 async function request(url, init) {
+  track(1);
+  try {
+    return await requestInner(url, init);
+  } finally {
+    track(-1);
+  }
+}
+
+async function requestInner(url, init) {
   let lastErr;
   for (let i = 0; i <= RETRIES; i++) {
     try {

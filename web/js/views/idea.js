@@ -1,7 +1,7 @@
 // 함께 다듬기(상세): 생각 전문, 갈라진 가지, 이어 쓴 생각, 아래 고정 입력줄.
 import { get, post, messageFor } from '../api.js';
 import * as store from '../store.js';
-import { el, icon, seatBadges, statusBadge, STATUS_MEANING, relTime, toast, confirmSheet, openSheet, isKakao, copyText, autoGrow } from '../ui.js';
+import { el, icon, seatBadges, statusBadge, STATUS_MEANING, relTime, toast, busy, confirmSheet, openSheet, isKakao, copyText, autoGrow } from '../ui.js';
 import { PUBLIC_URL, APP_NAME } from '../config.js';
 import { state, go, refreshBoot, patchItem } from '../app.js';
 import { waterButton, reportButton, nicknameSheet } from './common.js';
@@ -47,7 +47,7 @@ function editReplySheet(reply, onDone) {
       const choice = await privacyCheck(fields);
       if (choice === 'edit') return;
       if (choice === 'replaced') { ta.value = fields.text; return; }
-      save.disabled = true;
+      const done = busy(save, '고치는 중…');
       try {
         await post('update', { id: reply.id, edit_token: store.tokenFor(reply.id), text: fields.text });
         dlg.close();
@@ -55,7 +55,8 @@ function editReplySheet(reply, onDone) {
         onDone();
       } catch (e) {
         toast(messageFor(e));
-        save.disabled = false;
+      } finally {
+        done();
       }
     },
   }, '고치기');
@@ -90,13 +91,15 @@ function replyItem(r, reload) {
       mine && el('button', { type: 'button', class: 'text-link', onclick: () => editReplySheet(r, reload) }, '고치기'),
       mine && el('button', {
         type: 'button', class: 'text-link',
-        onclick: async () => {
+        onclick: async (ev) => {
+          const btn = ev.currentTarget;
           if (!(await confirmSheet('이 글을 지울까요?', '지우기'))) return;
+          const done = busy(btn, '지우는 중…');
           try {
             await post('remove', { id: r.id, edit_token: store.tokenFor(r.id) });
             toast('지웠어요.');
             reload();
-          } catch (e) { toast(messageFor(e)); }
+          } catch (e) { toast(messageFor(e)); } finally { done(); }
         },
       }, '지우기'),
       !mine && reportButton(r.id),
@@ -215,15 +218,18 @@ export async function renderIdea(m, id, { focusReply: wantFocus = false } = {}) 
         mine && el('button', { type: 'button', class: 'text-link', onclick: () => go('#/edit/' + idea.id) }, icon('pen', 16), '고치기'),
         mine && el('button', {
           type: 'button', class: 'text-link',
-          onclick: async () => {
+          onclick: async (ev) => {
+            const btn = ev.currentTarget;
             if (!(await confirmSheet('이 생각을 지울까요? 이어 쓴 글이 있으면 "지워진 생각" 카드로 남아요.', '지우기'))) return;
+            const done = busy(btn, '지우는 중…');
             try {
               await post('remove', { id: idea.id, edit_token: store.tokenFor(idea.id) });
+              done();
               toast('지웠어요.');
               store.forgetIdea(idea.id);
               refreshBoot().catch(() => {});
               go('#/');
-            } catch (e) { toast(messageFor(e)); }
+            } catch (e) { done(); toast(messageFor(e)); }
           },
         }, '지우기'),
         !mine && reportButton(idea.id),
@@ -235,7 +241,7 @@ export async function renderIdea(m, id, { focusReply: wantFocus = false } = {}) 
     const replies = data.replies;
     const shown = filter ? replies.filter((r) => r.kind === filter) : replies;
     body.replaceChildren(el('section', { class: 'replies', 'aria-label': '이어 쓴 생각' },
-      el('h3', { class: 'section-title' }, `함께 다듬은 생각 ${replies.length}`),
+      el('h3', { class: 'section-title' }, `이어 쓰기 ${replies.length}`),
       replies.length > 0 && el('div', { class: 'chips' }, [['전체', ''], ...KINDS.map((k) => [k, k])].map(([label, v]) => el('button', {
         type: 'button', class: 'chip' + (filter === v ? ' on' : ''), 'aria-pressed': String(filter === v),
         onclick: () => { filter = v; drawReplies(data); },
