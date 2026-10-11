@@ -89,6 +89,15 @@ export function cacheIdea(data) {
   for (const k of keys.slice(0, Math.max(0, keys.length - 20))) delete c[k];
   save('idea_cache', c);
 }
+/** 상세 저장분에서 ids에 없는 글을 지운다. 숨긴 글이 기기에 남지 않게(기획서 6장, QA B-08). */
+export function keepIdeas(ids) {
+  const keep = new Set(ids);
+  const c = load('idea_cache', {});
+  let changed = false;
+  for (const k of Object.keys(c)) if (!keep.has(k)) { delete c[k]; changed = true; }
+  if (changed) save('idea_cache', c);
+}
+
 export function forgetIdea(id) {
   const c = load('idea_cache', {});
   delete c[id];

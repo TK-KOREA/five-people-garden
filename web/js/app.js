@@ -59,6 +59,7 @@ export async function refreshBoot() {
   const data = await get('bootstrap');
   applyBoot(data);
   store.save('boot_cache', data);
+  store.keepIdeas((data.items || []).map((x) => x.id));
   if (!state.seat) {
     state.items = data.items;
     state.nextCursor = data.next_cursor;

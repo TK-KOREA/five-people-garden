@@ -57,7 +57,7 @@ export async function renderCompose(m, { seat = '', questionId = '', parentId = 
     try {
       original = (await get('idea', { id: editId })).idea;
     } catch (e) {
-      m.append(el('p', { class: 'empty' }, messageFor(e)));
+      m.append(el('p', { class: 'empty' }, messageFor(e, { read: true })));
       return;
     }
   }

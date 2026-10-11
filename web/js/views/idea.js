@@ -99,7 +99,7 @@ function replyItem(r, reload) {
             await post('remove', { id: r.id, edit_token: store.tokenFor(r.id) });
             toast('지웠어요.');
             reload();
-          } catch (e) { toast(messageFor(e)); } finally { done(); }
+          } catch (e) { toast(messageFor(e, { tap: true })); } finally { done(); }
         },
       }, '지우기'),
       !mine && reportButton(r.id),
@@ -229,7 +229,7 @@ export async function renderIdea(m, id, { focusReply: wantFocus = false } = {}) 
               store.forgetIdea(idea.id);
               refreshBoot().catch(() => {});
               go('#/');
-            } catch (e) { done(); toast(messageFor(e)); }
+            } catch (e) { done(); toast(messageFor(e, { tap: true })); }
           },
         }, '지우기'),
         !mine && reportButton(idea.id),
@@ -283,7 +283,13 @@ export async function renderIdea(m, id, { focusReply: wantFocus = false } = {}) 
       drawIdea(data.idea, data);
       drawReplies(data);
       if (store.tokenFor(id)) store.setSeenReplies(id, data.idea.reply_count);
-      showBar(data);
+      if (data.idea.deleted) {
+        // 저장분으로 먼저 띄운 입력줄이 남지 않게 한다(QA B-07). 지워진 생각에는 이어 쓸 수 없다.
+        document.querySelector('.bar')?.remove();
+        document.body.classList.remove('has-bar');
+      } else {
+        showBar(data);
+      }
     } catch (e) {
       if (!m.isConnected) return;
       // 연결 오류인데 저장된 화면이 있으면 그대로 둔다.
@@ -291,7 +297,7 @@ export async function renderIdea(m, id, { focusReply: wantFocus = false } = {}) 
       store.forgetIdea(id);
       document.querySelector('.bar')?.remove();
       document.body.classList.remove('has-bar');
-      let msg = messageFor(e);
+      let msg = messageFor(e, { read: true });
       // 내 글이면 숨김(관리자)과 지움(내가)을 나눠 알린다(QA B-03).
       if (e.code === 'NOT_FOUND' && store.tokenFor(id)) {
         try {

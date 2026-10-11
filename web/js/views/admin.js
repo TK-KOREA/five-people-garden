@@ -69,7 +69,7 @@ function itemCard(item, reload, { hidden } = {}) {
         await adminPost(action, { target_id: item.id }, btn, { hide: '숨기는 중…', unhide: '되돌리는 중…', erase: '지우는 중…' }[action]);
         toast(action === 'hide' ? '숨겼어요. 관리 화면에서 되돌릴 수 있어요.' : action === 'erase' ? '지웠어요.' : '되돌렸어요.');
         reload();
-      } catch (e) { toast(messageFor(e)); }
+      } catch (e) { toast(messageFor(e, { tap: true })); }
     },
   }, label);
   return el('li', { class: 'card' },
@@ -102,7 +102,7 @@ function toolsSection() {
         ta.value = d.text;
         out.replaceChildren(el('p', { class: 'label' }, '이번 주 소식 (단톡방에 붙여 넣기)'), ta,
           el('button', { type: 'button', class: 'btn small', onclick: async () => toast((await copyText(d.text)) ? '복사했어요.' : '복사하지 못했어요.') }, '복사'));
-      } catch (e) { toast(messageFor(e)); }
+      } catch (e) { toast(messageFor(e, { read: true })); }
     },
   }, '이번 주 소식 만들기');
   const stats = el('button', {
@@ -115,7 +115,7 @@ function toolsSection() {
           ['해 봤어요', s.tried], ['다녀간 기기 (30일)', s.visit_devices_30d], ['이틀 이상 다녀간 기기', s.returning_devices_30d],
           ['연결별 생각', Object.entries(s.counts).map(([k, v]) => `${k} ${v}`).join(' · ')],
         ].map(([k, v]) => [el('dt', null, k), el('dd', null, String(v))])));
-      } catch (e) { toast(messageFor(e)); }
+      } catch (e) { toast(messageFor(e, { read: true })); }
     },
   }, '정원 상태');
   const code = el('button', {
@@ -182,7 +182,7 @@ export async function renderAdmin(m) {
       store.sessionSave('admin_code', '');
       return loginForm(m, messageFor(e));
     }
-    m.replaceChildren(el('p', { class: 'empty' }, messageFor(e)));
+    m.replaceChildren(el('p', { class: 'empty' }, messageFor(e, { read: true })));
     return;
   }
   const reload = () => renderAdmin(m);

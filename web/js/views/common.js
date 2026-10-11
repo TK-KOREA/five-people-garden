@@ -34,7 +34,7 @@ export function waterButton(targetId, waters, { small, withText } = {}) {
       count -= 1;
       store.unmarkWatered(targetId);
       draw();
-      toast(messageFor(err));
+      toast(messageFor(err, { tap: true }));
     }
   });
   return btn;
@@ -48,7 +48,7 @@ export async function reportTarget(targetId, btn) {
     await post('report', { device_id: store.deviceId(), target_id: targetId });
     toast('살펴봐 달라고 알렸어요. 고마워요.');
   } catch (err) {
-    toast(messageFor(err));
+    toast(messageFor(err, { tap: true }));
   } finally {
     done();
   }

@@ -202,7 +202,7 @@ export async function renderFeed(m, { restoreScroll } = {}) {
       state.items = d.items;
       state.nextCursor = d.next_cursor;
     } catch (e) {
-      toast(messageFor(e));
+      toast(messageFor(e, { read: true }));
       state.items = [];
     }
     drawList();
@@ -220,7 +220,7 @@ export async function renderFeed(m, { restoreScroll } = {}) {
       drawList();
     } catch (err) {
       done();
-      toast(messageFor(err));
+      toast(messageFor(err, { read: true }));
     }
   }
 

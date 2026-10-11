@@ -20,7 +20,15 @@ export const MESSAGES = {
   NETWORK: '지금은 저장하지 못했어요. 쓴 내용은 남아 있으니 잠시 뒤 다시 눌러 주세요.',
 };
 
-export function messageFor(err) {
+/**
+ * 연결 오류 문구는 상황에 맞춘다(QA B-09). "쓴 내용은 남아 있으니"는 글을 쓰는 화면에서만.
+ *  tap: 물 주기·살펴봐 주세요·지우기·숨기기처럼 쓴 글이 없는 동작
+ *  read: 화면을 불러오는 중
+ */
+export function messageFor(err, { tap = false, read = false } = {}) {
+  const network = !err || err.code === 'NETWORK' || !MESSAGES[err.code];
+  if (network && read) return '지금은 불러오지 못했어요. 잠시 뒤 다시 열어 주세요.';
+  if (network && tap) return '지금은 연결이 어려워요. 잠시 뒤 다시 눌러 주세요.';
   return MESSAGES[err && err.code] || MESSAGES.NETWORK;
 }
 

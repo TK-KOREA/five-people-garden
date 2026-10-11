@@ -16,7 +16,7 @@ export async function renderMine(m) {
   try {
     data = await get('mine', { ids: ids.join(',') });
   } catch (e) {
-    box.replaceChildren(el('p', { class: 'empty' }, messageFor(e)));
+    box.replaceChildren(el('p', { class: 'empty' }, messageFor(e, { read: true })));
     return;
   }
   const hiddenNote = el('p', { class: 'note' }, '이름이 있어 잠시 가렸어요. 역할로 바꿔 다시 나눠 주세요.');
